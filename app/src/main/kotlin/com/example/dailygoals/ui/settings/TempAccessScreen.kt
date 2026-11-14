@@ -26,6 +26,7 @@ import com.example.dailygoals.R
 import com.example.dailygoals.SkritiApp
 import com.example.dailygoals.blocker.PendingKeys
 import com.example.dailygoals.engine.TempAccessSettings
+import com.example.dailygoals.ui.components.StepperRow
 import kotlinx.coroutines.launch
 
 @Composable
@@ -48,18 +49,18 @@ fun TempAccessScreen(onClose: () -> Unit, modifier: Modifier = Modifier) {
             Text(stringResource(R.string.temp_settings_on), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.weight(1f))
             Switch(checked = settings.enabled, onCheckedChange = { save(settings.copy(enabled = it)) })
         }
-        Stepper(R.string.temp_settings_uses, settings.maxUsesPerDay.toString(), TempAccessSettings.USES_RANGE, settings.maxUsesPerDay, 1) {
+        StepperRow(stringResource(R.string.temp_settings_uses), settings.maxUsesPerDay.toString(), TempAccessSettings.USES_RANGE, settings.maxUsesPerDay) {
             save(settings.copy(maxUsesPerDay = it))
         }
-        Stepper(
-            R.string.temp_settings_minutes,
+        StepperRow(
+            stringResource(R.string.temp_settings_minutes),
             stringResource(R.string.form_grace_minutes, settings.maxMinutes),
             TempAccessSettings.MINUTES_RANGE,
             settings.maxMinutes,
             1,
         ) { save(settings.copy(maxMinutes = it)) }
-        Stepper(
-            R.string.temp_settings_wait,
+        StepperRow(
+            stringResource(R.string.temp_settings_wait),
             stringResource(R.string.temp_settings_seconds, settings.waitSeconds),
             TempAccessSettings.WAIT_RANGE,
             settings.waitSeconds,
@@ -69,14 +70,5 @@ fun TempAccessScreen(onClose: () -> Unit, modifier: Modifier = Modifier) {
     }
 }
 
-@Composable
-private fun Stepper(label: Int, shown: String, range: IntRange, value: Int, step: Int, onChange: (Int) -> Unit) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 2.dp), verticalAlignment = Alignment.CenterVertically) {
-        Text(stringResource(label), fontSize = 15.sp, modifier = Modifier.weight(1f))
-        TextButton(onClick = { onChange((value - step).coerceIn(range)) }, enabled = value > range.first) { Text("−", fontSize = 20.sp) }
-        Text(shown, fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-        TextButton(onClick = { onChange((value + step).coerceIn(range)) }, enabled = value < range.last) { Text("+", fontSize = 20.sp) }
-    }
-}
 
 private const val WAIT_STEP = 15

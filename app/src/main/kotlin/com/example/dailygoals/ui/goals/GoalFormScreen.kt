@@ -133,22 +133,7 @@ fun GoalFormScreen(viewModel: GoalFormViewModel, onClose: () -> Unit, modifier: 
             HelpText(if (form.type == GoalType.DO) R.string.form_type_do_help else R.string.form_type_avoid_help)
         }
 
-        Field(R.string.form_frequency) {
-            SegmentedChoice(
-                options = listOf(
-                    Frequency.DAILY to stringResource(R.string.form_every_day),
-                    Frequency.WEEKDAYS to stringResource(R.string.form_specific_days),
-                ),
-                selected = form.frequency,
-                onSelect = { frequency -> viewModel.edit { it.copy(frequency = frequency) } },
-            )
-            if (form.frequency == Frequency.WEEKDAYS) {
-                DayPicker(form.days) { day ->
-                    viewModel.edit { it.copy(days = if (day in it.days) it.days - day else it.days + day) }
-                }
-                ErrorText(form.errors, GoalError.NO_DAYS, R.string.error_no_days)
-            }
-        }
+        FrequencyField(form, viewModel)
 
         Field(R.string.form_window) {
             SegmentedChoice(
@@ -233,7 +218,7 @@ internal fun ErrorText(errors: Set<GoalError>, error: GoalError, text: Int) {
 }
 
 @Composable
-private fun DayPicker(selected: Set<DayOfWeek>, onToggle: (DayOfWeek) -> Unit) {
+internal fun DayPicker(selected: Set<DayOfWeek>, onToggle: (DayOfWeek) -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val accent = accentBrush
     Row(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier.padding(top = 8.dp)) {

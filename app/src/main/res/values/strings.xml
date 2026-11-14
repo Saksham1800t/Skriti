@@ -425,4 +425,35 @@
     <string name="pending_form_delete">Ends after the current block, at %1$s</string>
     <string name="pending_toast">A block is running, so this change applies at %1$s.</string>
     <string name="settings_restore_refused">A block is running. Replacing all data has to wait until it ends; merging is still possible.</string>
+
+    <string name="freq_interval">Every N days</string>
+    <string name="freq_per_week">Per week</string>
+    <string name="freq_per_month">Per month</string>
+    <string name="freq_monthly">Monthly</string>
+    <string name="freq_interval_label">Repeat every</string>
+    <string name="freq_interval_days">%1$d days</string>
+    <string name="freq_interval_help">Counted from the day the goal starts.</string>
+    <string name="freq_times_week">Times per week</string>
+    <string name="freq_times_month">Times per month</string>
+    <string name="freq_quota_help">Any days count. The goal shows every day until the count is reached.</string>
+    <string name="freq_failure_title">When does it count as failed?</string>
+    <string name="freq_failure_unreachable">When out of reach</string>
+    <string name="freq_failure_end">At the end</string>
+    <string name="freq_failure_unreachable_help">Recommended. It fails as soon as the days left are fewer than the times still needed.</string>
+    <string name="freq_failure_end_help">It is judged only on the last day of the week or month.</string>
+    <string name="nth_first">First</string>
+    <string name="nth_second">Second</string>
+    <string name="nth_third">Third</string>
+    <string name="nth_fourth">Fourth</string>
+    <string name="nth_last">Last</string>
+    <plurals name="sentence_per_week">
+        <item quantity="one">%1$d time a week</item>
+        <item quantity="other">%1$d times a week</item>
+    </plurals>
+    <plurals name="sentence_per_month">
+        <item quantity="one">%1$d time a month</item>
+        <item quantity="other">%1$d times a month</item>
+    </plurals>
+    <string name="sentence_every_n_days">every %1$d days</string>
+    <string name="sentence_monthly">on the %1$s %2$s of every month</string>
 </resources>

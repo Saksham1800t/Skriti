@@ -38,7 +38,7 @@ import com.example.dailygoals.model.GoalType
 import com.example.dailygoals.ui.components.AccentButton
 import com.example.dailygoals.ui.components.AppIcon
 import com.example.dailygoals.ui.components.AppIconKind
-import com.example.dailygoals.ui.daysPhrase
+import com.example.dailygoals.ui.schedulePhrase
 import com.example.dailygoals.ui.windowText
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -91,7 +91,7 @@ fun GoalsScreen(viewModel: GoalsViewModel, onAdd: () -> Unit, onEdit: (Long) -> 
 private fun GoalRow(goal: Goal, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(22.dp)
-    val days = daysPhrase(goal.schedule.frequency, goal.schedule.activeDays).replaceFirstChar(Char::uppercase)
+    val days = schedulePhrase(goal.schedule).replaceFirstChar(Char::uppercase)
     val time = windowText(goal.schedule.window)
     Row(
         verticalAlignment = Alignment.CenterVertically,

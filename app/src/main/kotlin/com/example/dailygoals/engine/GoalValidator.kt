@@ -27,6 +27,9 @@ object GoalValidator {
     const val MAX_LABEL_LENGTH = 60
     const val MAX_UNIT_LENGTH = 20
     private const val MINUTES_PER_DAY = 24 * 60
+    val WEEK_COUNT_RANGE = 1..7
+    val MONTH_COUNT_RANGE = 1..31
+    val INTERVAL_RANGE = 2..30
     private const val MAX_WEEK_COUNT = 7
     private const val MAX_MONTH_COUNT = 31
     private const val MIN_INTERVAL_DAYS = 2

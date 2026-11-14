@@ -21,6 +21,8 @@ import com.example.dailygoals.model.GoalReminder
 import com.example.dailygoals.model.GoalSchedule
 import com.example.dailygoals.model.GoalType
 import com.example.dailygoals.model.MeasureType
+import com.example.dailygoals.model.MonthlyNth
+import com.example.dailygoals.model.QuotaFailureMode
 import com.example.dailygoals.model.TimeWindow
 import com.example.dailygoals.model.WarningMode
 import java.time.DayOfWeek
@@ -37,6 +39,11 @@ data class GoalFormState(
     val type: GoalType = GoalType.DO,
     val frequency: Frequency = Frequency.DAILY,
     val days: Set<DayOfWeek> = DayOfWeek.entries.toSet(),
+    val count: Int = 3,
+    val intervalDays: Int = GoalSchedule.DEFAULT_INTERVAL_DAYS,
+    val monthlyNth: MonthlyNth = MonthlyNth.FIRST,
+    val monthlyWeekday: DayOfWeek = DayOfWeek.MONDAY,
+    val quotaFailureMode: QuotaFailureMode = QuotaFailureMode.WHEN_UNREACHABLE,
     val hasWindow: Boolean = false,
     val startMinute: Int = DEFAULT_START_MINUTE,
     val endMinute: Int = DEFAULT_END_MINUTE,
@@ -108,6 +115,11 @@ data class GoalFormState(
             activeDays = days,
             window = window,
             startDate = kept?.startDate ?: startDate,
+            count = count,
+            intervalDays = intervalDays,
+            monthlyNth = monthlyNth,
+            monthlyWeekday = monthlyWeekday,
+            quotaFailureMode = quotaFailureMode,
             graceMinutes = graceMinutes,
         )
     }
@@ -137,6 +149,11 @@ class GoalFormViewModel(private val repository: GoalRepository, private val cloc
                     type = goal.type,
                     frequency = goal.schedule.frequency,
                     days = goal.schedule.activeDays,
+                    count = goal.schedule.count,
+                    intervalDays = goal.schedule.intervalDays,
+                    monthlyNth = goal.schedule.monthlyNth,
+                    monthlyWeekday = goal.schedule.monthlyWeekday,
+                    quotaFailureMode = goal.schedule.quotaFailureMode,
                     hasWindow = window != null,
                     startMinute = window?.startMinute ?: current.startMinute,
                     endMinute = window?.endMinute ?: current.endMinute,

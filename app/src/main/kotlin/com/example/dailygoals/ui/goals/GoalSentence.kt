@@ -21,7 +21,8 @@ import androidx.compose.ui.unit.sp
 import com.example.dailygoals.R
 import com.example.dailygoals.model.GoalType
 import com.example.dailygoals.model.WarningMode
-import com.example.dailygoals.ui.daysPhrase
+import com.example.dailygoals.ui.schedulePhrase
+import java.time.LocalDate
 import com.example.dailygoals.ui.windowPhrase
 
 /** Reads the form back in plain words so the goal can be checked before saving. */
@@ -36,7 +37,7 @@ fun GoalSentence(form: GoalFormState, modifier: Modifier = Modifier) {
     val opening = stringResource(if (form.type == GoalType.DO) R.string.sentence_do else R.string.sentence_avoid)
     val name = form.name.trim().ifEmpty { stringResource(R.string.sentence_name_placeholder) }
     val shownName = if (form.type == GoalType.DO) name.replaceFirstChar(Char::lowercase) else "“$name”"
-    val days = daysPhrase(form.frequency, form.days)
+    val days = schedulePhrase(form.schedule(LocalDate.now()))
     val window = windowPhrase(form.window)
     val rules = buildList {
         if (form.discipline.failOnWindowEnd) add(stringResource(R.string.sentence_fail_window))
