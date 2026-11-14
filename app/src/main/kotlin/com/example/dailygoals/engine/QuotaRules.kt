@@ -7,6 +7,8 @@ import java.time.LocalDateTime
 
 enum class PeriodStatus { OPEN, MET, FAILED, SKIPPED }
 
+enum class PeriodPunishment { START, CANCEL, NONE }
+
 data class PeriodOutcome(
     val period: Period,
     val originalRequired: Int,
@@ -19,6 +21,18 @@ data class PeriodOutcome(
 
 /** Rules for "X times per week" and "X times per month" goals. */
 object QuotaRules {
+    /**
+     * A quota goal is punished once per failed period, never once per missed day: only the moment a
+     * period turns FAILED starts it, and a period that stops being FAILED (a late tick) cancels it.
+     * A failure found long after the fact, such as after a restore, is recorded but not punished.
+     */
+    fun punishmentChange(before: PeriodStatus?, after: PeriodStatus, failedOn: LocalDate?, today: LocalDate): PeriodPunishment = when {
+        after == PeriodStatus.FAILED && before != PeriodStatus.FAILED ->
+            if (failedOn != null && failedOn >= today.minusDays(1)) PeriodPunishment.START else PeriodPunishment.NONE
+        after != PeriodStatus.FAILED && before == PeriodStatus.FAILED -> PeriodPunishment.CANCEL
+        else -> PeriodPunishment.NONE
+    }
+
     fun required(schedule: GoalSchedule, period: Period): Int = schedule.count.coerceIn(1, period.length)
 
     /**

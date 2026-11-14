@@ -103,4 +103,20 @@ class QuotaRulesTest {
         assertEquals(3, outcome.eligibleDays)
         assertEquals(3, outcome.adjustedRequired)
     }
+
+    @Test
+    fun aQuotaGoalIsPunishedOncePerFailedPeriodAndALateTickCancelsIt() {
+        val thursday = LocalDate.of(2026, 11, 12)
+        assertEquals(PeriodPunishment.START, QuotaRules.punishmentChange(null, PeriodStatus.FAILED, thursday, thursday))
+        assertEquals(PeriodPunishment.START, QuotaRules.punishmentChange(PeriodStatus.OPEN, PeriodStatus.FAILED, thursday, thursday.plusDays(1)))
+        assertEquals(PeriodPunishment.NONE, QuotaRules.punishmentChange(PeriodStatus.FAILED, PeriodStatus.FAILED, thursday, thursday.plusDays(1)))
+        assertEquals(PeriodPunishment.CANCEL, QuotaRules.punishmentChange(PeriodStatus.FAILED, PeriodStatus.MET, null, thursday.plusDays(1)))
+        assertEquals(PeriodPunishment.NONE, QuotaRules.punishmentChange(null, PeriodStatus.MET, null, thursday))
+    }
+
+    @Test
+    fun anOldFailureFoundLaterIsRecordedButNotPunished() {
+        val thursday = LocalDate.of(2026, 11, 12)
+        assertEquals(PeriodPunishment.NONE, QuotaRules.punishmentChange(null, PeriodStatus.FAILED, thursday, thursday.plusDays(5)))
+    }
 }

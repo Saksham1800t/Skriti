@@ -16,6 +16,7 @@ import com.example.dailygoals.engine.KeepOutcome
 import com.example.dailygoals.engine.Warning
 import com.example.dailygoals.engine.WarningPlan
 import com.example.dailygoals.engine.WarningPlanner
+import com.example.dailygoals.engine.PeriodPunishment
 import com.example.dailygoals.engine.PeriodStatus
 import com.example.dailygoals.engine.Periods
 import com.example.dailygoals.engine.QuotaRules
@@ -378,6 +379,12 @@ class GoalRepository(
                 .filter { finalisedThrough == null || it.end > finalisedThrough }
                 .forEach { period ->
                     val outcome = QuotaRules.evaluate(goal.schedule, period, metDates, neutral, now, dayEnd)
+                    val before = periodDao.find(goal.id, period.start.toString())
+                    when (QuotaRules.punishmentChange(before?.status, outcome.status, outcome.failedOn, now.toLocalDate())) {
+                        PeriodPunishment.START -> outcome.failedOn?.let { punishments?.onFailed(goal, it, epochMillis()) }
+                        PeriodPunishment.CANCEL -> before?.failedAt?.let { punishments?.onCorrected(goal.id, LocalDate.parse(it)) }
+                        PeriodPunishment.NONE -> Unit
+                    }
                     if (outcome.status == PeriodStatus.OPEN) {
                         periodDao.deleteFor(goal.id, period.start.toString())
                     } else {

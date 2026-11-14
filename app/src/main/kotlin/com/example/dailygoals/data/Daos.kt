@@ -100,6 +100,9 @@ interface WarningMarkDao {
 
 @Dao
 interface PeriodResultDao {
+    @Query("SELECT * FROM period_results WHERE goalId = :goalId AND periodStart = :periodStart")
+    suspend fun find(goalId: Long, periodStart: String): PeriodResultEntity?
+
     @Query("SELECT * FROM period_results")
     suspend fun all(): List<PeriodResultEntity>
 
