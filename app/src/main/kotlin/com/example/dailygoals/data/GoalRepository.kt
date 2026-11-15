@@ -21,7 +21,12 @@ import com.example.dailygoals.engine.HabitPauseLength
 import com.example.dailygoals.engine.NeutralDays
 import com.example.dailygoals.engine.PauseRules
 import com.example.dailygoals.engine.PeriodPunishment
+import com.example.dailygoals.engine.FailNotes
+import com.example.dailygoals.engine.RecoveryCheck
+import com.example.dailygoals.engine.RecoveryRules
 import com.example.dailygoals.engine.RescueCheck
+import com.example.dailygoals.engine.StakeRules
+import com.example.dailygoals.engine.StakeStatus
 import com.example.dailygoals.engine.RescueRules
 import com.example.dailygoals.engine.PeriodStatus
 import com.example.dailygoals.engine.Periods
@@ -65,6 +70,7 @@ class GoalRepository(
     private val pendingDao = database.pendingChangeDao()
     private val pauseDao = database.pauseEventDao()
     private val rescueDao = database.rescueDayDao()
+    private val stakeDao = database.stakeDao()
     private val evaluationLock = Mutex()
 
     val goals: Flow<List<Goal>> = goalDao.observeAll().map { list -> list.map(GoalEntity::toModel) }
@@ -77,6 +83,29 @@ class GoalRepository(
     val pendingChanges: Flow<List<PendingChangeEntity>> = pendingDao.observeAll()
 
     val pauses: Flow<List<GoalPause>> = pauseDao.observeAll().map { rows -> rows.map(PauseEventEntity::toPause) }
+
+    val stakes: Flow<List<StakeEntity>> = stakeDao.observeAll()
+
+    /** Saves the optional "what happened" answer on today's failed result. */
+    suspend fun saveFailNote(goalId: Long, date: LocalDate, tag: String?, note: String) {
+        val row = checkInDao.find(goalId, date.toString()) ?: return
+        if (row.status != DayStatus.FAILED) return
+        checkInDao.save(row.copy(failTag = FailNotes.cleanTag(tag), failNote = FailNotes.clean(note), updatedAt = epochMillis()))
+    }
+
+    /** The same-day way back after a failure: the minimum step counts and the day is flagged as recovered. */
+    suspend fun recover(goalId: Long, date: LocalDate): RecoveryCheck = database.withTransaction {
+        val goal = goalDao.find(goalId)?.toModel() ?: return@withTransaction RecoveryCheck.NOT_FAILED
+        val row = checkInDao.find(goalId, date.toString())
+        val check = RecoveryRules.check(goal, date, clock.now().toLocalDate(), row?.status ?: DayStatus.PENDING, row?.recovered == true)
+        if (check != RecoveryCheck.OK || goal.measurement.isAmount) return@withTransaction check
+        write(goalId, date, DayStatus.MINIMUM, null, row?.amount ?: 0, CheckInRules.lateMinutes(goal.schedule.window, date, clock.now(), clock.zone), row, recovered = true)
+        check
+    }
+
+    suspend fun completeStake(id: Long) = stakeDao.setStatus(id, StakeStatus.DONE.name, epochMillis())
+
+    suspend fun dismissStake(id: Long) = stakeDao.setStatus(id, StakeStatus.DISMISSED.name, epochMillis())
 
     val rescueDays: Flow<Set<LocalDate>> = rescueDao.observeAll().map { rows -> rows.map { LocalDate.parse(it.date) }.toSet() }
 
@@ -277,7 +306,14 @@ class GoalRepository(
             wasMet -> existing?.lateMinutes
             else -> CheckInRules.lateMinutes(goal.schedule.window, date, now, clock.zone)
         }
-        write(goal.id, date, resolved.status, resolved.failReason, amount, late, existing)
+        val recovers = resolved.status == DayStatus.FAILED && existing?.status == DayStatus.FAILED &&
+            RecoveryRules.check(goal, date, now.toLocalDate(), DayStatus.FAILED, existing.recovered) == RecoveryCheck.OK &&
+            RecoveryRules.amountRecovers(goal, amount)
+        if (recovers) {
+            write(goal.id, date, DayStatus.MINIMUM, null, amount, CheckInRules.lateMinutes(goal.schedule.window, date, now, clock.zone), existing, recovered = true)
+        } else {
+            write(goal.id, date, resolved.status, resolved.failReason, amount, late, existing)
+        }
     }
 
     private suspend fun write(
@@ -288,9 +324,12 @@ class GoalRepository(
         amount: Int,
         lateMinutes: Int?,
         existing: CheckInEntity?,
+        recovered: Boolean? = null,
     ) {
         val millis = epochMillis()
         val punishmentSkipped = applyPunishment(goalId, date, status, existing, millis)
+        val keepNotes = status == DayStatus.FAILED
+        val recoveredNow = recovered ?: (existing?.recovered == true && status.isMet)
         checkInDao.save(
             CheckInEntity(
                 id = existing?.id ?: 0,
@@ -303,8 +342,26 @@ class GoalRepository(
                 amount = amount,
                 lateMinutes = lateMinutes,
                 punishmentSkipped = punishmentSkipped,
+                failTag = existing?.failTag.takeIf { keepNotes },
+                failNote = existing?.failNote.takeIf { keepNotes },
+                recovered = recoveredNow,
+                recoveredAt = if (recoveredNow) existing?.recoveredAt ?: millis else null,
             ),
         )
+        updateStake(goalId, date, status, existing?.status, punishmentSkipped, millis)
+    }
+
+    /** A new failure creates its stake once; a corrected or rescued failure cancels a stake still pending. */
+    private suspend fun updateStake(goalId: Long, date: LocalDate, status: DayStatus, before: DayStatus?, skipped: Boolean, millis: Long) {
+        if (status == DayStatus.FAILED && before != DayStatus.FAILED) {
+            val goal = goalDao.find(goalId)?.toModel() ?: return
+            val paused = PauseRules.isPaused(pauseDao.all().map(PauseEventEntity::toPause), goalId, date)
+            val stake = StakeRules.onFailed(goal.meaning.stake, goal.discipline.intensity, skipped, paused, date) ?: return
+            stakeDao.insert(StakeEntity(goalId = goalId, sourceDate = date.toString(), dueDate = stake.dueDate.toString(), text = stake.text, status = StakeStatus.PENDING.name, createdAt = millis, resolvedAt = null))
+        } else if (status != DayStatus.FAILED && before == DayStatus.FAILED) {
+            val stake = stakeDao.find(goalId, date.toString()) ?: return
+            StakeRules.onCorrected(StakeStatus.valueOf(stake.status))?.let { stakeDao.setStatus(stake.id, it.name, millis) }
+        }
     }
 
     /** A new failure today starts its punishment once; correcting a failed day ends what that failure caused. */

@@ -10,6 +10,7 @@ data class Settings(
     val dayEndMinute: Int = DEFAULT_DAY_END_MINUTE,
     val minimumWeightPercent: Int = DEFAULT_MINIMUM_WEIGHT_PERCENT,
     val timeShiftMinutes: Long = 0,
+    val askFailNote: Boolean = true,
 ) {
     companion object {
         const val DEFAULT_DAY_END_MINUTE = 23 * 60 + 59
@@ -34,6 +35,7 @@ class SettingsStore(private val prefs: SharedPreferences) {
             .putInt(KEY_DAY_END, next.dayEndMinute)
             .putInt(KEY_MINIMUM_WEIGHT, next.minimumWeightPercent)
             .putLong(KEY_TIME_SHIFT, next.timeShiftMinutes)
+            .putBoolean(KEY_ASK_NOTE, next.askFailNote)
             .apply()
         mutableSettings.value = next
     }
@@ -58,6 +60,17 @@ class SettingsStore(private val prefs: SharedPreferences) {
     fun setupSeen(): Boolean = prefs.getBoolean(KEY_SETUP_SEEN, false)
 
     fun markSetupSeen() = prefs.edit().putBoolean(KEY_SETUP_SEEN, true).apply()
+
+    private val mutableSeen = MutableStateFlow(prefs.getStringSet(KEY_SEEN_FAILURES, emptySet()).orEmpty())
+
+    /** Failures whose "what happened" step was already shown, as goal id and date, so it appears once. */
+    val seenFailures: StateFlow<Set<String>> = mutableSeen.asStateFlow()
+
+    fun markFailureSeen(key: String) {
+        val next = (mutableSeen.value + key).sortedDescending().take(200).toSet()
+        prefs.edit().putStringSet(KEY_SEEN_FAILURES, next).apply()
+        mutableSeen.value = next
+    }
 
     /** Pauses whose end was already announced, as goal id and resume date, so the notice appears once. */
     fun announcedResumes(): Set<String> = prefs.getStringSet(KEY_RESUMES, emptySet()).orEmpty()
@@ -85,6 +98,7 @@ class SettingsStore(private val prefs: SharedPreferences) {
         dayEndMinute = prefs.getInt(KEY_DAY_END, Settings.DEFAULT_DAY_END_MINUTE),
         minimumWeightPercent = prefs.getInt(KEY_MINIMUM_WEIGHT, Settings.DEFAULT_MINIMUM_WEIGHT_PERCENT),
         timeShiftMinutes = prefs.getLong(KEY_TIME_SHIFT, 0),
+        askFailNote = prefs.getBoolean(KEY_ASK_NOTE, true),
     )
 
     private companion object {
@@ -98,6 +112,8 @@ class SettingsStore(private val prefs: SharedPreferences) {
         const val KEY_TIMERS = "timers"
         const val KEY_SETUP_SEEN = "setup_seen"
         const val KEY_RESUMES = "announced_resumes"
+        const val KEY_ASK_NOTE = "ask_fail_note"
+        const val KEY_SEEN_FAILURES = "seen_failures"
         const val MAX_RESUMES = 100
     }
 }
