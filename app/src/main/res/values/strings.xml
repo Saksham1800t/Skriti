@@ -456,4 +456,6 @@
     </plurals>
     <string name="sentence_every_n_days">every %1$d days</string>
     <string name="sentence_monthly">on the %1$s %2$s of every month</string>
+
+    <string name="pause_resumed_notice">The pause is over. This goal counts again from today.</string>
 </resources>

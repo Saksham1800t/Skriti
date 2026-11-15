@@ -51,8 +51,22 @@ class WarningNotifier(private val context: Context) {
         }
     }
 
+    @SuppressLint("MissingPermission")
+    fun postResumed(goal: Goal) {
+        if (!manager.areNotificationsEnabled()) return
+        val notification = NotificationCompat.Builder(context, NotificationChannels.WARNINGS)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(goal.name)
+            .setContentText(context.getString(R.string.pause_resumed_notice))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .setContentIntent(openApp())
+            .build()
+        runCatching { manager.notify("resumed", goal.id.toInt(), notification) }
+    }
+
     fun cancel(goalId: Long) {
-        manager.activeNotifications.filter { it.id == goalId.toInt() && !FailureNotifier.owns(it.tag) }.forEach { manager.cancel(it.tag, it.id) }
+        manager.activeNotifications.filter { it.id == goalId.toInt() && !FailureNotifier.owns(it.tag) && it.tag != "resumed" }.forEach { manager.cancel(it.tag, it.id) }
     }
 
     private fun openApp(): PendingIntent = PendingIntent.getActivity(

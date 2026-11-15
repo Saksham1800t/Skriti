@@ -25,6 +25,7 @@ class WarningRunner(
     suspend fun run() = lock.withLock {
         repository.applyDuePending()
         repository.evaluate()
+        repository.takeResumedGoals().forEach(notifier::postResumed)
         val scheduled = repository.scheduledBatch()
         blockSync.apply(scheduled.blocks)
         val batch = repository.warningBatch()

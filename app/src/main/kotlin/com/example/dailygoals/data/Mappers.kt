@@ -1,5 +1,6 @@
 package com.example.dailygoals.data
 
+import com.example.dailygoals.engine.GoalPause
 import com.example.dailygoals.model.CheckIn
 import com.example.dailygoals.model.Goal
 import com.example.dailygoals.model.GoalAvoidance
@@ -130,3 +131,5 @@ fun CheckInEntity.toModel(): CheckIn = CheckIn(
     failNote = failNote,
     recovered = recovered,
 )
+
+fun PauseEventEntity.toPause(): GoalPause = GoalPause(goalId, LocalDate.parse(startDate), endDate?.let(LocalDate::parse))

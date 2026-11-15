@@ -59,6 +59,12 @@ class SettingsStore(private val prefs: SharedPreferences) {
 
     fun markSetupSeen() = prefs.edit().putBoolean(KEY_SETUP_SEEN, true).apply()
 
+    /** Pauses whose end was already announced, as goal id and resume date, so the notice appears once. */
+    fun announcedResumes(): Set<String> = prefs.getStringSet(KEY_RESUMES, emptySet()).orEmpty()
+
+    fun saveAnnouncedResumes(keys: Set<String>) = prefs.edit().putStringSet(KEY_RESUMES, keys.sortedDescending().take(MAX_RESUMES).toSet()).apply()
+
+
     fun startTimer(goalId: Long, startMillis: Long) = writeTimers(mutableTimers.value + (goalId to startMillis))
 
     fun stopTimer(goalId: Long): Long? {
@@ -91,5 +97,7 @@ class SettingsStore(private val prefs: SharedPreferences) {
         const val KEY_NEUTRAL = "neutral_dates"
         const val KEY_TIMERS = "timers"
         const val KEY_SETUP_SEEN = "setup_seen"
+        const val KEY_RESUMES = "announced_resumes"
+        const val MAX_RESUMES = 100
     }
 }
