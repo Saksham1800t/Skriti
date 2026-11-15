@@ -46,12 +46,13 @@ object FailureEvaluator {
         dayEndMinute: Int,
         finalisedThrough: LocalDate?,
         neutralDates: Set<LocalDate>,
+        isNeutral: (goalId: Long, date: LocalDate) -> Boolean = { _, _ -> false },
     ): List<NewFailure> {
         val today = now.toLocalDate()
         return goals.filter { it.state == GoalState.ACTIVE && !it.schedule.isQuota }.flatMap { goal ->
             val first = maxOf(goal.schedule.startDate, finalisedThrough?.plusDays(1) ?: goal.schedule.startDate)
             generateSequence(first) { it.plusDays(1) }.takeWhile { it <= today }.mapNotNull { date ->
-                if (date in neutralDates || !DueDates.isDue(goal.schedule, date)) return@mapNotNull null
+                if (date in neutralDates || isNeutral(goal.id, date) || !DueDates.isDue(goal.schedule, date)) return@mapNotNull null
                 if (statusOf(goal.id, date) != DayStatus.PENDING) return@mapNotNull null
                 firedReason(goal, date, now, zone, dayEndMinute)?.let { NewFailure(goal.id, date, it) }
             }.toList()

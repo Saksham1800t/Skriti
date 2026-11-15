@@ -161,4 +161,39 @@ class FailureEvaluatorTest {
         val result = failures(goal, date.atTime(23, 59), finalisedThrough = date)
         assertEquals(emptyList<NewFailure>(), result)
     }
+
+    @Test
+    fun pausedAndRescuedDaysNeverFailButTheDaysAroundThemStillDo() {
+        val goal = goal(GoalDiscipline(failOnDayEnd = true), window = null, start = date.minusDays(3))
+        val pauses = listOf(GoalPause(goal.id, date.minusDays(2), date.minusDays(2)))
+        val rescued = setOf(date.minusDays(1))
+        val result = FailureEvaluator.newFailures(
+            goals = listOf(goal),
+            statusOf = { _, _ -> DayStatus.PENDING },
+            now = date.atTime(8, 0),
+            zone = utc,
+            dayEndMinute = dayEnd,
+            finalisedThrough = null,
+            neutralDates = emptySet(),
+            isNeutral = { goalId, day -> day in rescued || PauseRules.isPaused(pauses, goalId, day) },
+        )
+        assertEquals(listOf(date.minusDays(3)), result.map { it.date })
+    }
+
+    @Test
+    fun aPauseOfAnotherGoalDoesNotProtectThisOne() {
+        val goal = goal(GoalDiscipline(failOnDayEnd = true), window = null, start = date.minusDays(1))
+        val pauses = listOf(GoalPause(goal.id + 1, date.minusDays(1), null))
+        val result = FailureEvaluator.newFailures(
+            goals = listOf(goal),
+            statusOf = { _, _ -> DayStatus.PENDING },
+            now = date.atTime(8, 0),
+            zone = utc,
+            dayEndMinute = dayEnd,
+            finalisedThrough = null,
+            neutralDates = emptySet(),
+            isNeutral = { goalId, day -> PauseRules.isPaused(pauses, goalId, day) },
+        )
+        assertEquals(listOf(date.minusDays(1)), result.map { it.date })
+    }
 }

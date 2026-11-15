@@ -79,13 +79,14 @@ object ScheduledBlocks {
         finalisedThrough: LocalDate?,
         neutralDates: Set<LocalDate>,
         lifts: List<BlockLift>,
+        isNeutral: (goalId: Long, date: LocalDate) -> Boolean = { _, _ -> false },
     ): List<AutoKeep> {
         val instant = now.atZone(zone).toInstant()
         val today = now.toLocalDate()
         return goals.filter { applies(it) && it.discipline.autoKeepAtWindowEnd }.flatMap { goal ->
             val first = maxOf(goal.schedule.startDate, finalisedThrough?.plusDays(1) ?: goal.schedule.startDate)
             generateSequence(first) { it.plusDays(1) }.takeWhile { it <= today }.mapNotNull { date ->
-                if (date in neutralDates || statusOf(goal.id, date) != DayStatus.PENDING) return@mapNotNull null
+                if (date in neutralDates || isNeutral(goal.id, date) || statusOf(goal.id, date) != DayStatus.PENDING) return@mapNotNull null
                 val span = span(goal, date, zone) ?: return@mapNotNull null
                 val settle = keepMoment(goal, date, zone, dayEndMinute)
                 if (instant < settle) return@mapNotNull null
