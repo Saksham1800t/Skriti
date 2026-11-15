@@ -33,6 +33,14 @@ object RecoveryRules {
 object FailNotes {
     val TAGS = listOf("Tired", "Forgot", "Stress", "Temptation", "Busy", "Other")
     const val MAX_NOTE_LENGTH = 280
+    val TRIGGERS = listOf("Bored", "Stressed", "Tired", "Social", "Craving", "Habit", "Other")
+    val BEFORE = listOf("Working", "Studying", "Scrolling", "Eating", "Resting")
+    val PLACES = listOf("Home", "Work", "Commute", "Outside", "Other")
+    val MOODS = 1..5
+
+    fun cleanChoice(value: String?, allowed: List<String>): String? = value?.takeIf { it in allowed }
+
+    fun cleanMood(value: Int?): Int? = value?.takeIf { it in MOODS }
 
     fun clean(note: String): String? = note.trim().take(MAX_NOTE_LENGTH).ifEmpty { null }
 

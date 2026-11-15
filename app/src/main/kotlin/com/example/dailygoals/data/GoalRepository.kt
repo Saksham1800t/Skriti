@@ -42,6 +42,7 @@ import com.example.dailygoals.engine.ZoneChange
 import com.example.dailygoals.model.CheckIn
 import com.example.dailygoals.model.DayStatus
 import com.example.dailygoals.model.FailReason
+import com.example.dailygoals.model.FailSource
 import com.example.dailygoals.model.Goal
 import com.example.dailygoals.model.GoalState
 import com.example.dailygoals.model.isMet
@@ -95,6 +96,21 @@ class GoalRepository(
         val row = checkInDao.find(goalId, date.toString()) ?: return
         if (row.status != DayStatus.FAILED) return
         checkInDao.save(row.copy(failTag = FailNotes.cleanTag(tag), failNote = FailNotes.clean(note), updatedAt = epochMillis()))
+    }
+
+    /** Saves the optional details after a failure: trigger, mood, what happened right before, and place. No location is used. */
+    suspend fun saveFailDetails(goalId: Long, date: LocalDate, trigger: String?, mood: Int?, before: String?, place: String?) {
+        val row = checkInDao.find(goalId, date.toString()) ?: return
+        if (row.status != DayStatus.FAILED) return
+        checkInDao.save(
+            row.copy(
+                failTrigger = FailNotes.cleanChoice(trigger, FailNotes.TRIGGERS),
+                failMood = FailNotes.cleanMood(mood),
+                failPrevActivity = FailNotes.cleanChoice(before, FailNotes.BEFORE),
+                failPlace = FailNotes.cleanChoice(place, FailNotes.PLACES),
+                updatedAt = epochMillis(),
+            ),
+        )
     }
 
     /** The same-day way back after a failure: the minimum step counts and the day is flagged as recovered. */
@@ -349,6 +365,11 @@ class GoalRepository(
                 failTag = existing?.failTag.takeIf { keepNotes },
                 failNote = existing?.failNote.takeIf { keepNotes },
                 recovered = recoveredNow,
+                failTrigger = existing?.failTrigger.takeIf { keepNotes },
+                failMood = existing?.failMood.takeIf { keepNotes },
+                failPrevActivity = existing?.failPrevActivity.takeIf { keepNotes },
+                failPlace = existing?.failPlace.takeIf { keepNotes },
+                failSource = if (status.isMet && existing?.status == DayStatus.FAILED) FailSource.CORRECTED else existing?.failSource.takeIf { keepNotes } ?: FailSource.SELF_REPORTED,
                 recoveredAt = if (recoveredNow) existing?.recoveredAt ?: millis else null,
             ),
         )

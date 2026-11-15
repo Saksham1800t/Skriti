@@ -111,4 +111,21 @@ class RecoveryRulesTest {
         assertEquals(listOf(0), StakeRules.due(stakes, failedOn.plusDays(4)))
         assertEquals(listOf(0, 1), StakeRules.due(stakes, failedOn.plusDays(5)))
     }
+
+    @Test
+    fun detailChoicesOutsideTheListAreDropped() {
+        assertEquals("Bored", FailNotes.cleanChoice("Bored", FailNotes.TRIGGERS))
+        assertNull(FailNotes.cleanChoice("Whatever", FailNotes.TRIGGERS))
+        assertNull(FailNotes.cleanChoice(null, FailNotes.PLACES))
+        assertEquals(3, FailNotes.cleanMood(3))
+        assertNull(FailNotes.cleanMood(0))
+        assertNull(FailNotes.cleanMood(6))
+    }
+
+    @Test
+    fun aPlanNeedsBothHalves() {
+        assertEquals("When I want to smoke, I will wait 10 minutes", GoalMeaning(ifText = "I want to smoke", thenText = "wait 10 minutes").plan)
+        assertNull(GoalMeaning(ifText = "I want to smoke").plan)
+        assertNull(GoalMeaning(thenText = "wait", ifText = " ").plan)
+    }
 }
