@@ -131,6 +131,10 @@ class DayViewModel(
         viewModelScope.launch { repository.saveFailNote(goalId, date, tag, note) }
     }
 
+    fun saveDetails(goalId: Long, date: LocalDate, trigger: String?, mood: Int?, before: String?, place: String?) {
+        viewModelScope.launch { repository.saveFailDetails(goalId, date, trigger, mood, before, place) }
+    }
+
     fun recover(goalId: Long, date: LocalDate) {
         viewModelScope.launch { repository.recover(goalId, date) }
     }

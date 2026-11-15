@@ -37,7 +37,8 @@ class WarningNotifier(private val context: Context) {
     @SuppressLint("MissingPermission")
     fun post(goal: Goal, warning: Warning, level: DeliveryLevel) {
         if (!manager.areNotificationsEnabled()) return
-        val text = message(goal, warning.kind, warning.stage)
+        val plan = goal.meaning.plan.takeIf { warning.stage == EscalationStage.FINAL }
+        val text = message(goal, warning.kind, warning.stage) + (plan?.let { " " + it + "." } ?: "")
         val builder = NotificationCompat.Builder(context, NotificationChannels.WARNINGS)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(goal.name)

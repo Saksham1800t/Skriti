@@ -601,4 +601,11 @@
     <string name="plan_then">I will…</string>
     <string name="plan_then_hint">take 3 breaths and go back to the task</string>
     <string name="plan_help">Your plan is shown in the failure screen and in the final warning.</string>
+
+    <string name="failure_screen_plan">Your plan</string>
+    <string name="details_title">More about %1$s (optional)</string>
+    <string name="details_trigger">What triggered it?</string>
+    <string name="details_mood">Mood, 1 to 5</string>
+    <string name="details_before">What happened right before?</string>
+    <string name="details_place">Where were you?</string>
 </resources>
