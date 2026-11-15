@@ -156,6 +156,10 @@ fun SettingsScreen(
             }
         }
 
+        Group(R.string.settings_review) {
+            TimeBox(R.string.settings_review_time, R.string.settings_review_time, settings.reviewMinute, Modifier.fillMaxWidth(), onPicked = viewModel::setReviewMinute)
+        }
+
         Group(R.string.settings_scoring) {
             Text(stringResource(R.string.settings_weight), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
             Text(stringResource(R.string.settings_weight_help), fontSize = 12.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)

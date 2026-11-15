@@ -34,7 +34,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.dailygoals.R
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.dailygoals.MainActivity
 import com.example.dailygoals.SkritiApp
+import com.example.dailygoals.ui.insights.InsightsScreen
+import com.example.dailygoals.ui.insights.InsightsViewModel
+import com.example.dailygoals.ui.insights.ReviewListScreen
+import com.example.dailygoals.ui.insights.WeeklyReviewScreen
 import com.example.dailygoals.ui.blocktest.BlockTestScreen
 import com.example.dailygoals.ui.settings.BlockedAppsScreen
 import com.example.dailygoals.ui.settings.BlockMessagesScreen
@@ -59,6 +65,7 @@ import com.example.dailygoals.ui.theme.accentBrush
 private enum class Tab(val label: Int, val icon: AppIconKind) {
     TODAY(R.string.tab_today, AppIconKind.LOGO),
     GOALS(R.string.tab_goals, AppIconKind.LIST),
+    INSIGHTS(R.string.tab_insights, AppIconKind.CHART),
     SETTINGS(R.string.tab_settings, AppIconKind.SETTINGS),
 }
 
@@ -77,6 +84,15 @@ fun AppRoot() {
 
     val app = LocalContext.current.applicationContext as SkritiApp
     var showPermissions by rememberSaveable { mutableStateOf(!app.settings.setupSeen()) }
+    var reviewList by rememberSaveable { mutableStateOf(false) }
+    var reviewWeek by rememberSaveable { mutableStateOf<String?>(null) }
+    val pending by MainActivity.pendingReview.collectAsStateWithLifecycle()
+    LaunchedEffect(pending) {
+        pending?.let {
+            reviewWeek = it
+            MainActivity.pendingReview.value = null
+        }
+    }
     var showBlockTest by rememberSaveable { mutableStateOf(false) }
     var blockingPage by rememberSaveable { mutableStateOf<BlockingPage?>(null) }
     val closePermissions = {
@@ -98,6 +114,20 @@ fun AppRoot() {
                 BlockingPage.WALLPAPER -> WallpaperScreen(onClose = { blockingPage = null }, modifier = Modifier.weight(1f))
                 else -> BlockMessagesScreen(onClose = { blockingPage = null }, modifier = Modifier.weight(1f))
             }
+        } else if (reviewWeek != null) {
+            BackHandler { reviewWeek = null }
+            WeeklyReviewScreen(
+                weekStart = reviewWeek!!,
+                onBack = { reviewWeek = null },
+                onModify = { id ->
+                    reviewWeek = null
+                    openForm(id)
+                },
+                modifier = Modifier.weight(1f),
+            )
+        } else if (reviewList) {
+            BackHandler { reviewList = false }
+            ReviewListScreen(onBack = { reviewList = false }, onOpen = { reviewWeek = it }, modifier = Modifier.weight(1f))
         } else if (showBlockTest) {
             BackHandler { showBlockTest = false }
             BlockTestScreen(onClose = { showBlockTest = false }, modifier = Modifier.weight(1f))
@@ -117,6 +147,10 @@ fun AppRoot() {
                         viewModel = viewModel(factory = GoalsViewModel.Factory),
                         onAdd = { openForm(NEW_GOAL_ID) },
                         onEdit = openForm,
+                    )
+                    Tab.INSIGHTS -> InsightsScreen(
+                        viewModel = viewModel(factory = InsightsViewModel.Factory),
+                        onOpenReviews = { reviewList = true },
                     )
                     Tab.SETTINGS -> SettingsScreen(
                         viewModel = viewModel(factory = SettingsViewModel.Factory),

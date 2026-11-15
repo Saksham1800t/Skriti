@@ -62,6 +62,7 @@ class SettingsViewModel(
 
     fun setQuietHours(quiet: QuietHours) = settingsStore.update { it.copy(quietHours = quiet) }
 
+    fun setReviewMinute(minute: Int) = settingsStore.update { it.copy(reviewMinute = minute) }
     fun setAskFailNote(on: Boolean) = settingsStore.update { it.copy(askFailNote = on) }
 
     fun restore(parsed: Backup, mode: RestoreMode, onDone: () -> Unit) {

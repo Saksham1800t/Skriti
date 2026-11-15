@@ -5,6 +5,8 @@
     <string name="tab_today">Today</string>
     <string name="tab_goals">Goals</string>
     <string name="tab_settings">Settings</string>
+    <string name="tab_insights">Insights</string>
+    <string name="settings_review">Weekly review</string>
 
     <string name="channel_warnings">Warnings</string>
     <string name="channel_warnings_description">Reminders for goals that are due, with Done and I failed buttons.</string>
@@ -609,7 +611,6 @@
     <string name="details_before">What happened right before?</string>
     <string name="details_place">Where were you?</string>
 
-    <string name="tab_insights">Insights</string>
     <string name="insights_title">Insights</string>
     <string name="insights_week">Week</string>
     <string name="insights_month">Month</string>
