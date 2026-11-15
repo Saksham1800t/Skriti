@@ -33,6 +33,7 @@ data class GoalEntity(
     @Embedded val reminder: ReminderColumns,
     @Embedded val avoidance: AvoidanceColumns,
     @Embedded val meaning: MeaningColumns = MeaningColumns(),
+    @Embedded val alarm: AlarmColumns = AlarmColumns(),
 )
 
 data class ReminderColumns(
@@ -79,6 +80,17 @@ data class MeaningColumns(
     val ifFailText: String? = null,
     val stakeText: String? = null,
     @ColumnInfo(defaultValue = "1") val recoveryAllowed: Boolean = true,
+)
+
+data class AlarmColumns(
+    @ColumnInfo(defaultValue = "0") val alarmEnabled: Boolean = false,
+    val alarmMinute: Int? = null,
+    @ColumnInfo(defaultValue = "127") val alarmDays: Int = 127,
+    val alarmSoundUri: String? = null,
+    @ColumnInfo(defaultValue = "1") val alarmVibrate: Boolean = true,
+    @ColumnInfo(defaultValue = "5") val snoozeMinutes: Int = 5,
+    @ColumnInfo(defaultValue = "3") val snoozeLimit: Int = 3,
+    @ColumnInfo(defaultValue = "0") val alarmDismissTicksGoal: Boolean = false,
 )
 
 data class MeasurementColumns(

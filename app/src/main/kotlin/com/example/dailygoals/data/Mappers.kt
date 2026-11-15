@@ -5,6 +5,7 @@ import com.example.dailygoals.model.CheckIn
 import com.example.dailygoals.model.Goal
 import com.example.dailygoals.model.GoalAvoidance
 import com.example.dailygoals.model.GoalDiscipline
+import com.example.dailygoals.model.GoalAlarm
 import com.example.dailygoals.model.GoalMeaning
 import com.example.dailygoals.model.GoalMeasurement
 import com.example.dailygoals.model.GoalReminder
@@ -65,6 +66,16 @@ fun GoalEntity.toModel(): Goal = Goal(
     ),
     avoidance = GoalAvoidance(avoidance.temptingPackages.lines().filter { it.isNotBlank() }.toSet()),
     meaning = GoalMeaning(why = meaning.whyText, ifFail = meaning.ifFailText, stake = meaning.stakeText, recoveryAllowed = meaning.recoveryAllowed),
+    alarm = GoalAlarm(
+        enabled = alarm.alarmEnabled,
+        minute = alarm.alarmMinute,
+        days = alarm.alarmDays.toDaySet(),
+        soundUri = alarm.alarmSoundUri,
+        vibrate = alarm.alarmVibrate,
+        snoozeMinutes = alarm.snoozeMinutes,
+        snoozeLimit = alarm.snoozeLimit,
+        dismissTicksGoal = alarm.alarmDismissTicksGoal,
+    ),
 )
 
 fun Goal.toEntity(): GoalEntity = GoalEntity(
@@ -116,6 +127,16 @@ fun Goal.toEntity(): GoalEntity = GoalEntity(
         ifFailText = meaning.ifFail?.trim()?.ifEmpty { null },
         stakeText = meaning.stake?.trim()?.ifEmpty { null },
         recoveryAllowed = meaning.recoveryAllowed,
+    ),
+    alarm = AlarmColumns(
+        alarmEnabled = alarm.enabled,
+        alarmMinute = alarm.minute,
+        alarmDays = alarm.days.toDayMask(),
+        alarmSoundUri = alarm.soundUri,
+        alarmVibrate = alarm.vibrate,
+        snoozeMinutes = alarm.snoozeMinutes,
+        snoozeLimit = alarm.snoozeLimit,
+        alarmDismissTicksGoal = alarm.dismissTicksGoal,
     ),
 )
 

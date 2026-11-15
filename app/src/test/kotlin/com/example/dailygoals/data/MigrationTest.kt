@@ -81,6 +81,8 @@ class MigrationTest {
 
     private fun migrateToSix() = MigrationSql.V5_TO_V6.forEach(::execute)
 
+    private fun migrateToSeven() = MigrationSql.V6_TO_V7.forEach(::execute)
+
     /** Builds a fresh database of [version] beside the migrated one and compares structure table by table. */
     private fun assertStructureEqualsFresh(version: Int) {
         val migrated = tableNames(version).associateWith(::structureOf)
@@ -250,6 +252,41 @@ class MigrationTest {
         assertEquals(listOf(2), query("SELECT COUNT(*) FROM goals") { it.getInt(1) })
         assertEquals(listOf(2), query("SELECT COUNT(*) FROM check_ins") { it.getInt(1) })
         assertStructureEqualsFresh(6)
+    }
+
+    @Test
+    fun versionSevenKeepsRowsAndLeavesEveryAlarmOff() {
+        createVersion(6)
+        insertVersionOneData()
+        migrateToSeven()
+        val goals = query("SELECT id, alarmEnabled, alarmMinute, alarmDays, alarmSoundUri, alarmVibrate, snoozeMinutes, snoozeLimit, alarmDismissTicksGoal FROM goals ORDER BY id") {
+            listOf(it.getInt(1), it.getInt(2), it.getObject(3), it.getInt(4), it.getObject(5), it.getInt(6), it.getInt(7), it.getInt(8), it.getInt(9))
+        }
+        val off = listOf(0, null, 127, null, 1, 5, 3, 0)
+        assertEquals(listOf(listOf(1) + off.take(1) + off.drop(1), listOf(2) + off.take(1) + off.drop(1)), goals)
+        assertEquals(listOf(2), query("SELECT COUNT(*) FROM check_ins") { it.getInt(1) })
+    }
+
+    @Test
+    fun versionSevenStructureEqualsAFreshVersionSevenDatabase() {
+        createVersion(6)
+        migrateToSeven()
+        assertStructureEqualsFresh(7)
+    }
+
+    @Test
+    fun migratingStraightFromVersionOneToSevenKeepsEverything() {
+        createVersion(1)
+        insertVersionOneData()
+        migrate()
+        migrateToThree()
+        migrateToFour()
+        migrateToFive()
+        migrateToSix()
+        migrateToSeven()
+        assertEquals(listOf(2), query("SELECT COUNT(*) FROM goals") { it.getInt(1) })
+        assertEquals(listOf(2), query("SELECT COUNT(*) FROM check_ins") { it.getInt(1) })
+        assertStructureEqualsFresh(7)
     }
 
     @Test

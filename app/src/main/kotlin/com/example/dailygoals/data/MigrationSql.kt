@@ -5,6 +5,17 @@ package com.example.dailygoals.data
  * Existing rows are kept; new columns get the defaults that match the Room entities.
  */
 object MigrationSql {
+    val V6_TO_V7: List<String> = listOf(
+        "ALTER TABLE `goals` ADD COLUMN `alarmEnabled` INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE `goals` ADD COLUMN `alarmMinute` INTEGER",
+        "ALTER TABLE `goals` ADD COLUMN `alarmDays` INTEGER NOT NULL DEFAULT 127",
+        "ALTER TABLE `goals` ADD COLUMN `alarmSoundUri` TEXT",
+        "ALTER TABLE `goals` ADD COLUMN `alarmVibrate` INTEGER NOT NULL DEFAULT 1",
+        "ALTER TABLE `goals` ADD COLUMN `snoozeMinutes` INTEGER NOT NULL DEFAULT 5",
+        "ALTER TABLE `goals` ADD COLUMN `snoozeLimit` INTEGER NOT NULL DEFAULT 3",
+        "ALTER TABLE `goals` ADD COLUMN `alarmDismissTicksGoal` INTEGER NOT NULL DEFAULT 0",
+    )
+
     val V5_TO_V6: List<String> = listOf(
         "ALTER TABLE `goals` ADD COLUMN `whyText` TEXT",
         "ALTER TABLE `goals` ADD COLUMN `ifFailText` TEXT",

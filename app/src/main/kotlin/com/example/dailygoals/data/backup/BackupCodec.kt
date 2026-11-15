@@ -2,6 +2,7 @@ package com.example.dailygoals.data.backup
 
 import com.example.dailygoals.data.AmountLogEntity
 import com.example.dailygoals.data.AppDatabase
+import com.example.dailygoals.data.AlarmColumns
 import com.example.dailygoals.data.AvoidanceColumns
 import com.example.dailygoals.data.MeaningColumns
 import com.example.dailygoals.data.CheckInEntity
@@ -139,6 +140,14 @@ object BackupCodec {
         put("ifFailText", goal.meaning.ifFailText ?: JSONObject.NULL)
         put("stakeText", goal.meaning.stakeText ?: JSONObject.NULL)
         put("recoveryAllowed", goal.meaning.recoveryAllowed)
+        put("alarmEnabled", goal.alarm.alarmEnabled)
+        put("alarmMinute", goal.alarm.alarmMinute ?: JSONObject.NULL)
+        put("alarmDays", goal.alarm.alarmDays)
+        put("alarmSoundUri", goal.alarm.alarmSoundUri ?: JSONObject.NULL)
+        put("alarmVibrate", goal.alarm.alarmVibrate)
+        put("snoozeMinutes", goal.alarm.snoozeMinutes)
+        put("snoozeLimit", goal.alarm.snoozeLimit)
+        put("alarmDismissTicksGoal", goal.alarm.alarmDismissTicksGoal)
         put("measureType", goal.measurement.measureType.name)
         put("unit", goal.measurement.unit)
         put("targetAmount", goal.measurement.targetAmount)
@@ -199,6 +208,16 @@ object BackupCodec {
             ifFailText = json.stringOrNull("ifFailText"),
             stakeText = json.stringOrNull("stakeText"),
             recoveryAllowed = json.optBoolean("recoveryAllowed", true),
+        ),
+        alarm = AlarmColumns(
+            alarmEnabled = json.optBoolean("alarmEnabled", false),
+            alarmMinute = json.intOrNull("alarmMinute"),
+            alarmDays = json.optInt("alarmDays", 127),
+            alarmSoundUri = json.stringOrNull("alarmSoundUri"),
+            alarmVibrate = json.optBoolean("alarmVibrate", true),
+            snoozeMinutes = json.optInt("snoozeMinutes", 5),
+            snoozeLimit = json.optInt("snoozeLimit", 3),
+            alarmDismissTicksGoal = json.optBoolean("alarmDismissTicksGoal", false),
         ),
     )
 

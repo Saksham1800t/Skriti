@@ -32,8 +32,14 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun stakeDao(): StakeDao
 
     companion object {
-        const val VERSION = 6
+        const val VERSION = 7
         private const val FILE_NAME = "daily_goals.db"
+
+        private val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                MigrationSql.V6_TO_V7.forEach(db::execSQL)
+            }
+        }
 
         private val MIGRATION_5_6 = object : Migration(5, 6) {
             override fun migrate(db: SupportSQLiteDatabase) {
@@ -69,7 +75,7 @@ abstract class AppDatabase : RoomDatabase() {
         fun create(context: Context): AppDatabase {
             backUpBeforeMigration(context)
             return Room.databaseBuilder(context, AppDatabase::class.java, FILE_NAME)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
                 .build()
         }
 
