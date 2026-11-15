@@ -5,6 +5,8 @@ import com.example.dailygoals.data.backup.BackupCodec
 import com.example.dailygoals.engine.ActiveBlock
 import com.example.dailygoals.engine.AlarmRing
 import com.example.dailygoals.engine.GoalHistory
+import com.example.dailygoals.engine.ViolationAnswer
+import com.example.dailygoals.engine.ViolationRules
 import com.example.dailygoals.engine.GoalWeek
 import com.example.dailygoals.engine.NextWeek
 import com.example.dailygoals.engine.ReviewSchedule
@@ -48,6 +50,7 @@ import com.example.dailygoals.model.CheckIn
 import com.example.dailygoals.model.DayStatus
 import com.example.dailygoals.model.FailReason
 import com.example.dailygoals.model.FailSource
+import com.example.dailygoals.model.GoalType
 import com.example.dailygoals.model.Goal
 import com.example.dailygoals.model.GoalState
 import com.example.dailygoals.model.isMet
@@ -82,6 +85,7 @@ class GoalRepository(
     private val rescueDao = database.rescueDayDao()
     private val stakeDao = database.stakeDao()
     private val reviewDao = database.weeklyReviewDao()
+    private val violationDao = database.violationDao()
     private val evaluationLock = Mutex()
 
     val goals: Flow<List<Goal>> = goalDao.observeAll().map { list -> list.map(GoalEntity::toModel) }
@@ -153,6 +157,23 @@ class GoalRepository(
         choices.filterValues { it == NextWeek.PAUSE }.keys.forEach { pauseGoal(it, HabitPauseLength.DAYS_7, null) }
         choices.filterValues { it == NextWeek.DELETE }.keys.forEach { archive(it) }
         return choices.entries.firstOrNull { it.value == NextWeek.MODIFY }?.key
+    }
+
+    /** Active avoid goals with tempting apps, for the prompt that asks whether one was just used. */
+    suspend fun watchedGoals(): List<Goal> =
+        goalDao.all().map(GoalEntity::toModel).filter { it.type == GoalType.AVOID && it.state == GoalState.ACTIVE && it.avoidance.temptingPackages.isNotEmpty() }
+
+    suspend fun recordViolationPrompt(goalId: Long, packageName: String, atMillis: Long): Long =
+        violationDao.insert(ViolationEventEntity(goalId = goalId, packageName = packageName, openedAt = atMillis, answer = ViolationAnswer.UNANSWERED.name))
+
+    /** Only Yes fails the goal for today, marked as found by the app and confirmed by the user. */
+    suspend fun answerViolation(eventId: Long, goalId: Long, answer: ViolationAnswer) {
+        violationDao.setAnswer(eventId, answer.name)
+        if (!ViolationRules.failsGoal(answer)) return
+        val date = clock.now().toLocalDate()
+        applyAction(goalId, date, CheckAction.MARK_FAILED)
+        val row = checkInDao.find(goalId, date.toString()) ?: return
+        if (row.status == DayStatus.FAILED) checkInDao.save(row.copy(failSource = FailSource.DETECTED, updatedAt = epochMillis()))
     }
 
     suspend fun reviewMadeFor(weekStart: LocalDate): Boolean = reviewDao.find(weekStart.toString()) != null

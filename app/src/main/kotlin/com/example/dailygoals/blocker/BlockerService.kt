@@ -51,6 +51,7 @@ class BlockerService : AccessibilityService() {
     private var launchPendingUntil = 0L
     private var launchers: Set<String> = emptySet()
     private var launchersReadAt = Long.MIN_VALUE / 2
+    private val prompter by lazy { ViolationPrompter(application as SkritiApp) }
 
     override fun onServiceConnected() {
         instance = this
@@ -62,6 +63,7 @@ class BlockerService : AccessibilityService() {
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         if (event.eventType != AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) return
         val pkg = event.packageName?.toString() ?: return
+        prompter.onFront(pkg, passThroughPackages())
         evaluate(pkg, event.className, event.eventTime, attempt = 0)
     }
 

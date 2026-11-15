@@ -108,6 +108,10 @@
             android:windowSoftInputMode="adjustResize" />
 
         <receiver
+            android:name=".blocker.ViolationReceiver"
+            android:exported="false" />
+
+        <receiver
             android:name=".blocker.TempAccessReceiver"
             android:exported="false" />
 
