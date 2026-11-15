@@ -98,6 +98,15 @@ permission; and sideloaded apps may need "Allow restricted settings" in app info
 accessibility switch can be turned on. A debug build has a hidden "Blocking test" screen in
 Settings for this. The result will be written here once it has been tried.
 
+For the wake alarm, the animated wallpaper and the widget (checked before building them): Google's
+Android 17 pages list no change to live wallpapers, app widgets or alarm clocks started with
+AlarmManager.setAlarmClock. The background-audio change does matter for the alarm. An app in the
+background may not start sound or take audio focus unless it is running a foreground service, even if
+it holds the exact alarm permission. So the alarm sound is played only from a short foreground
+service started by the alarm broadcast, which Android allows, and it stops when the alarm is dismissed or
+after ten minutes. The warning wallpaper plays no sound. A live wallpaper must be confirmed once in the
+system preview, and while it is active it replaces any other live wallpaper; the settings screen says so.
+
 ## Permissions
 
 | Permission | Used for |
