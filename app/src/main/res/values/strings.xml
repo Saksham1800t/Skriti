@@ -269,7 +269,7 @@
     <string name="banner_dismiss">Dismiss</string>
 
     <string name="sentence_fails_if">It counts as failed if</string>
-    <string name="sentence_or"> or </string>
+    <string name="sentence_or">" or "</string>
     <string name="sentence_fail_window">the window ends without a tick</string>
     <string name="sentence_fail_day">the day ends without a tick</string>
     <string name="sentence_fail_manual">I press \"I failed\"</string>
