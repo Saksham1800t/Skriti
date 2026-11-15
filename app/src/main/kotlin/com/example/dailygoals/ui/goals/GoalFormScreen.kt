@@ -250,7 +250,7 @@ internal fun DayPicker(selected: Set<DayOfWeek>, onToggle: (DayOfWeek) -> Unit) 
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-internal fun TimeBox(label: Int, dialogTitle: Int, minute: Int, modifier: Modifier, onPicked: (Int) -> Unit) {
+internal fun TimeBox(label: Int, dialogTitle: Int, minute: Int, modifier: Modifier, notSet: Boolean = false, onPicked: (Int) -> Unit) {
     val scheme = MaterialTheme.colorScheme
     var open by rememberSaveable { mutableStateOf(false) }
     Column(
@@ -262,7 +262,7 @@ internal fun TimeBox(label: Int, dialogTitle: Int, minute: Int, modifier: Modifi
             .padding(horizontal = 14.dp, vertical = 10.dp),
     ) {
         Text(stringResource(label), fontSize = 11.5.sp, color = scheme.onSurfaceVariant)
-        Text(formatMinute(minute), fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
+        Text(if (notSet) stringResource(R.string.alarm_time_not_set) else formatMinute(minute), fontSize = 20.sp, fontWeight = FontWeight.SemiBold)
     }
     if (open) {
         val picker = rememberTimePickerState(

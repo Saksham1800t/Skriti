@@ -36,7 +36,7 @@ internal fun AlarmField(form: GoalFormState, viewModel: GoalFormViewModel) {
     Field(R.string.form_alarm) {
         CheckRow(form.alarmOn, R.string.alarm_switch, R.string.alarm_switch_help) { on -> viewModel.edit { it.copy(alarmOn = on) } }
         if (!form.alarmOn) return@Field
-        TimeBox(R.string.alarm_time, R.string.alarm_time_pick, form.alarmMinute ?: form.startMinute, Modifier.padding(top = 12.dp)) { minute ->
+        TimeBox(R.string.alarm_time, R.string.alarm_time_pick, form.alarmMinute ?: form.startMinute, Modifier.padding(top = 12.dp), notSet = form.alarmMinute == null) { minute ->
             viewModel.edit { it.copy(alarmMinute = minute) }
         }
         if (form.alarmMinute == null) HelpText(R.string.alarm_time_unset)
