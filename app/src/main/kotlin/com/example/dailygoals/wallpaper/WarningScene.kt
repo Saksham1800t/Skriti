@@ -66,7 +66,7 @@ class WarningScene {
             canvas.drawBitmap(normal, null, rect, null)
             return
         }
-        fill.shader = LinearGradient(0f, 0f, w, h, Color.parseColor("#22304e"), Color.parseColor("#0b1020"), Shader.TileMode.CLAMP)
+        fill.color = Color.BLACK; fill.shader = LinearGradient(0f, 0f, w, h, Color.parseColor("#22304e"), Color.parseColor("#0b1020"), Shader.TileMode.CLAMP)
         canvas.drawRect(0f, 0f, w, h, fill)
         fill.shader = null
         for (i in 0 until 7) {
@@ -106,7 +106,7 @@ class WarningScene {
             WallpaperStyle.PULSE -> {
                 fill.color = Color.parseColor("#10050a"); canvas.drawRect(0f, 0f, w, h, fill)
                 val b = if (input.still) 0.6f else 0.5f + 0.5f * sin(t / 1400.0).toFloat()
-                fill.shader = RadialGradient(cx + sway * 14 * k, cy, 360f * k, intArrayOf(argb(0.55f + 0.25f * b, 255, 70, 95), argb(0.32f, 190, 25, 55), argb(0f, 16, 5, 10)), floatArrayOf(0f, 0.35f, 1f), Shader.TileMode.CLAMP)
+                fill.color = Color.BLACK; fill.shader = RadialGradient(cx + sway * 14 * k, cy, 360f * k, intArrayOf(argb(0.55f + 0.25f * b, 255, 70, 95), argb(0.32f, 190, 25, 55), argb(0f, 16, 5, 10)), floatArrayOf(0f, 0.35f, 1f), Shader.TileMode.CLAMP)
                 canvas.drawRect(0f, 0f, w, h, fill); fill.shader = null
                 val n = 9
                 for (i in 0 until n) {
@@ -121,9 +121,9 @@ class WarningScene {
                 ring(canvas, cx, h * 0.69f, (56f + 40f * left) * k, left, 4f * k, Color.parseColor("#ff6a84"), 14f * k)
             }
             WallpaperStyle.EMBERS -> {
-                fill.shader = LinearGradient(0f, 0f, 0f, h, intArrayOf(Color.parseColor("#0e0508"), Color.parseColor("#22090d"), Color.parseColor("#5a1810")), floatArrayOf(0f, 0.6f, 1f), Shader.TileMode.CLAMP)
+                fill.color = Color.BLACK; fill.shader = LinearGradient(0f, 0f, 0f, h, intArrayOf(Color.parseColor("#0e0508"), Color.parseColor("#22090d"), Color.parseColor("#5a1810")), floatArrayOf(0f, 0.6f, 1f), Shader.TileMode.CLAMP)
                 canvas.drawRect(0f, 0f, w, h, fill)
-                fill.shader = RadialGradient(cx, h + 40f * k, 380f * k, argb(0.55f, 255, 120, 40), argb(0f, 255, 120, 40), Shader.TileMode.CLAMP)
+                fill.color = Color.BLACK; fill.shader = RadialGradient(cx, h + 40f * k, 380f * k, argb(0.55f, 255, 120, 40), argb(0f, 255, 120, 40), Shader.TileMode.CLAMP)
                 canvas.drawRect(0f, 0f, w, h, fill); fill.shader = null
                 for (layer in 0..2) {
                     for (e in embers) {
@@ -143,7 +143,7 @@ class WarningScene {
             WallpaperStyle.GLITCH -> {
                 fill.color = Color.parseColor("#07070f"); canvas.drawRect(0f, 0f, w, h, fill)
                 val hz = h * 0.42f
-                fill.shader = LinearGradient(0f, hz - 60f * k, 0f, hz + 60f * k, intArrayOf(argb(0f, 255, 40, 100), argb(0.35f, 255, 40, 100), argb(0f, 255, 40, 100)), floatArrayOf(0f, 0.5f, 1f), Shader.TileMode.CLAMP)
+                fill.color = Color.BLACK; fill.shader = LinearGradient(0f, hz - 60f * k, 0f, hz + 60f * k, intArrayOf(argb(0f, 255, 40, 100), argb(0.35f, 255, 40, 100), argb(0f, 255, 40, 100)), floatArrayOf(0f, 0.5f, 1f), Shader.TileMode.CLAMP)
                 canvas.drawRect(0f, hz - 60f * k, w, hz + 60f * k, fill); fill.shader = null
                 stroke.color = argb(0.55f, 255, 60, 120); stroke.strokeWidth = 1f * k; stroke.clearShadowLayer()
                 for (i in -14..14) canvas.drawLine(cx + sway * 20f * mov * k + i * 6f * k, hz, cx + sway * 30f * mov * k + i * 92f * k, h, stroke)
@@ -160,13 +160,13 @@ class WarningScene {
                 fill.color = Color.parseColor("#07070f"); canvas.drawRect(0f, 0f, w, hz - 120f * k, fill)
             }
             WallpaperStyle.MINIMAL -> {
-                fill.shader = LinearGradient(0f, 0f, 0f, h, Color.parseColor("#3b1019"), Color.parseColor("#1a060b"), Shader.TileMode.CLAMP)
+                fill.color = Color.BLACK; fill.shader = LinearGradient(0f, 0f, 0f, h, Color.parseColor("#3b1019"), Color.parseColor("#1a060b"), Shader.TileMode.CLAMP)
                 canvas.drawRect(0f, 0f, w, h, fill); fill.shader = null
                 for (d in discs.sortedBy { it.z }) {
                     val x = d.x * w + sway * 70f * d.z * mov * k + (if (input.still) 0f else sin(t / 3000.0 + d.r).toFloat() * 8f * d.z * k)
                     val y = d.y * h + (if (input.still) 0f else cos(t / 3600.0 + d.r).toFloat() * 9f * d.z * k)
                     val r = d.r * (0.6f + d.z) * k
-                    fill.shader = RadialGradient(x - r * 0.3f, y - r * 0.3f, r, argb(0.10f + 0.18f * d.z, 255, 120, 140), argb(0f, 255, 90, 120), Shader.TileMode.CLAMP)
+                    fill.color = Color.BLACK; fill.shader = RadialGradient(x - r * 0.3f, y - r * 0.3f, r, argb(0.10f + 0.18f * d.z, 255, 120, 140), argb(0f, 255, 90, 120), Shader.TileMode.CLAMP)
                     canvas.drawCircle(x, y, r, fill)
                 }
                 fill.shader = null
