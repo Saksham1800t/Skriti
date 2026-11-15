@@ -87,21 +87,30 @@ class WallpaperController(private val context: Context, val store: WallpaperStor
 
     private fun key(state: WarningWallpaper) = state.goalNames.joinToString("|") + "#" + store.style.name
 
-    /** Copies the picked picture into private storage, scaled down, because Android does not let apps read the current wallpaper back. */
-    fun saveNormalWallpaper(uri: Uri): Boolean {
+    /**
+     * Copies the picked picture into private storage, scaled down, because Android does not let apps read the
+     * current wallpaper back. Returns false only when the picture cannot be read or written.
+     */
+    fun saveNormalWallpaper(uri: Uri): Boolean = runCatching {
+        val resolver = context.contentResolver
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
-        context.contentResolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) } ?: return false
+        // With inJustDecodeBounds the decoder returns no bitmap by design; only the size is wanted here.
+        resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) } ?: return@runCatching false
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return@runCatching false
         val target = maxOf(context.resources.displayMetrics.heightPixels, MIN_TARGET)
         var sample = 1
         while (bounds.outHeight / (sample * 2) >= target) sample *= 2
-        val bitmap = context.contentResolver.openInputStream(uri)?.use {
+        val bitmap = resolver.openInputStream(uri)?.use {
             BitmapFactory.decodeStream(it, null, BitmapFactory.Options().apply { inSampleSize = sample })
-        } ?: return false
-        FileOutputStream(store.normalFile).use { bitmap.compress(Bitmap.CompressFormat.JPEG, 92, it) }
-        bitmap.recycle()
+        } ?: return@runCatching false
+        try {
+            FileOutputStream(store.normalFile).use { out -> bitmap.compress(Bitmap.CompressFormat.JPEG, 92, out) }
+        } finally {
+            bitmap.recycle()
+        }
         store.bumpNormalVersion()
-        return true
-    }
+        true
+    }.getOrDefault(false)
 
     private companion object {
         const val MIN_TARGET = 1600
