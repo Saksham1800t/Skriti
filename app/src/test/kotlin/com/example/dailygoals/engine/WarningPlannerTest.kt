@@ -92,6 +92,13 @@ class WarningPlannerTest {
     }
 
     @Test
+    fun eachWarningCarriesItsStageSoTheWordingGetsFirmer() {
+        assertEquals(EscalationStage.REMINDER, plan(goal(), at(6, 5)).toFire.single().stage)
+        assertEquals(EscalationStage.STRONGER, plan(goal(), at(6, 40)).toFire.single().stage)
+        assertEquals(EscalationStage.FINAL, plan(goal(), at(7, 0)).toFire.single().stage)
+    }
+
+    @Test
     fun aWarningAlreadyShownIsNotShownAgain() {
         assertEquals(emptyList<Warning>(), plan(goal(), at(6, 12), marks = mapOf((1L to date) to 1)).toFire)
         assertEquals(1, plan(goal(), at(6, 12), marks = mapOf((1L to date) to 0)).toFire.single().index)

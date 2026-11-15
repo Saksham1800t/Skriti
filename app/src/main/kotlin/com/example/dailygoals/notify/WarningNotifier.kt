@@ -9,6 +9,7 @@ import androidx.core.app.NotificationManagerCompat
 import com.example.dailygoals.MainActivity
 import com.example.dailygoals.R
 import com.example.dailygoals.engine.DeliveryLevel
+import com.example.dailygoals.engine.EscalationStage
 import com.example.dailygoals.engine.Warning
 import com.example.dailygoals.engine.WarningKind
 import com.example.dailygoals.model.Goal
@@ -18,7 +19,15 @@ import java.time.LocalDate
 class WarningNotifier(private val context: Context) {
     private val manager = NotificationManagerCompat.from(context)
 
-    fun message(goal: Goal, kind: WarningKind): String = when (kind) {
+    fun message(goal: Goal, kind: WarningKind, stage: EscalationStage = EscalationStage.REMINDER): String = firm(stage, base(goal, kind))
+
+    private fun firm(stage: EscalationStage, text: String): String = when (stage) {
+        EscalationStage.REMINDER -> text
+        EscalationStage.STRONGER -> context.getString(R.string.warn_stage_stronger, text)
+        EscalationStage.FINAL -> context.getString(R.string.warn_stage_final, text)
+    }
+
+    private fun base(goal: Goal, kind: WarningKind): String = when (kind) {
         WarningKind.Start -> context.getString(if (goal.schedule.window != null) R.string.warn_window_open else R.string.warn_check_in)
         WarningKind.StillOpen -> context.getString(R.string.warn_still_open)
         is WarningKind.Grace -> context.getString(R.string.warn_grace, kind.minutesLeft)
@@ -28,7 +37,7 @@ class WarningNotifier(private val context: Context) {
     @SuppressLint("MissingPermission")
     fun post(goal: Goal, warning: Warning, level: DeliveryLevel) {
         if (!manager.areNotificationsEnabled()) return
-        val text = message(goal, warning.kind)
+        val text = message(goal, warning.kind, warning.stage)
         val builder = NotificationCompat.Builder(context, NotificationChannels.WARNINGS)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(goal.name)

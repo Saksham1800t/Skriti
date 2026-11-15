@@ -20,7 +20,13 @@ sealed interface WarningKind {
 
 data class WarningTime(val index: Int, val at: Instant)
 
-data class Warning(val goalId: Long, val date: LocalDate, val index: Int, val kind: WarningKind)
+data class Warning(
+    val goalId: Long,
+    val date: LocalDate,
+    val index: Int,
+    val kind: WarningKind,
+    val stage: EscalationStage = EscalationStage.REMINDER,
+)
 
 data class WarningPlan(val toFire: List<Warning>, val nextWakeup: Instant)
 
@@ -104,7 +110,13 @@ object WarningPlanner {
                 if (date == today) {
                     val lastShown = marks[goal.id to date] ?: -1
                     times.lastOrNull { !it.at.isAfter(nowInstant) && it.index > lastShown }?.let {
-                        fire += Warning(goal.id, date, it.index, kindFor(goal, date, it.index, nowInstant, zone, dayEndMinute))
+                        fire += Warning(
+                            goal.id,
+                            date,
+                            it.index,
+                            kindFor(goal, date, it.index, nowInstant, zone, dayEndMinute),
+                            Escalation.stageFor(goal, date, it.at, zone, dayEndMinute),
+                        )
                     }
                 }
                 times.firstOrNull { it.at.isAfter(nowInstant) }?.let { if (it.at.isBefore(next)) next = it.at }

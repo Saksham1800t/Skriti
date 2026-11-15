@@ -4,6 +4,7 @@ import com.example.dailygoals.blocker.ScheduledBlockSync
 import com.example.dailygoals.data.GoalRepository
 import com.example.dailygoals.engine.DeliveryLevel
 import com.example.dailygoals.engine.DeliveryLevels
+import com.example.dailygoals.engine.NotificationCap
 import java.time.Duration
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
@@ -34,7 +35,14 @@ class WarningRunner(
         batch.plan.toFire.forEach { warning ->
             val goal = batch.goals[warning.goalId] ?: return@forEach
             val level = DeliveryLevels.choose(state, goal.reminder.strongAlert)
-            if (level != DeliveryLevel.IN_APP) notifier.post(goal, warning, level)
+            val settings = repository.currentSettings()
+            val minute = batch.now.atZone(java.time.ZoneId.systemDefault()).let { it.hour * 60 + it.minute }
+            val sent = repository.sentCount(goal.id, warning.date)
+            val allowed = NotificationCap.allows(warning.stage, sent, settings.maxNotificationsPerGoalPerDay, settings.quietHours, minute)
+            if (level != DeliveryLevel.IN_APP && allowed) {
+                notifier.post(goal, warning, level)
+                repository.countSent(goal.id, warning.date)
+            }
             repository.markWarningShown(warning, level)
         }
         val warningWait = Duration.between(batch.now, batch.plan.nextWakeup)

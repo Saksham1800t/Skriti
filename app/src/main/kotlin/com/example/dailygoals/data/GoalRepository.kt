@@ -584,6 +584,12 @@ class GoalRepository(
 
     fun neutralDates(): Set<LocalDate> = settings.evalState().neutralDates
 
+    fun currentSettings() = settings.settings.value
+
+    fun sentCount(goalId: Long, date: LocalDate): Int = settings.sentCount(goalId, date)
+
+    fun countSent(goalId: Long, date: LocalDate) = settings.countSent(goalId, date)
+
     private companion object {
         const val KEEP_MARK_DAYS = 7L
     }

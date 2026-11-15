@@ -1,6 +1,8 @@
 package com.example.dailygoals.data
 
 import android.content.SharedPreferences
+import com.example.dailygoals.engine.NotificationCap
+import com.example.dailygoals.engine.QuietHours
 import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,6 +13,8 @@ data class Settings(
     val minimumWeightPercent: Int = DEFAULT_MINIMUM_WEIGHT_PERCENT,
     val timeShiftMinutes: Long = 0,
     val askFailNote: Boolean = true,
+    val maxNotificationsPerGoalPerDay: Int = NotificationCap.DEFAULT_MAX_PER_GOAL_PER_DAY,
+    val quietHours: QuietHours = QuietHours(),
 ) {
     companion object {
         const val DEFAULT_DAY_END_MINUTE = 23 * 60 + 59
@@ -36,6 +40,10 @@ class SettingsStore(private val prefs: SharedPreferences) {
             .putInt(KEY_MINIMUM_WEIGHT, next.minimumWeightPercent)
             .putLong(KEY_TIME_SHIFT, next.timeShiftMinutes)
             .putBoolean(KEY_ASK_NOTE, next.askFailNote)
+            .putInt(KEY_MAX_NOTIFICATIONS, next.maxNotificationsPerGoalPerDay)
+            .putBoolean(KEY_QUIET_ON, next.quietHours.enabled)
+            .putInt(KEY_QUIET_START, next.quietHours.startMinute)
+            .putInt(KEY_QUIET_END, next.quietHours.endMinute)
             .apply()
         mutableSettings.value = next
     }
@@ -72,6 +80,16 @@ class SettingsStore(private val prefs: SharedPreferences) {
         mutableSeen.value = next
     }
 
+    /** How many warnings were posted for the goal on the date, for the daily cap. */
+    fun sentCount(goalId: Long, date: LocalDate): Int = prefs.getInt("$KEY_SENT_PREFIX$goalId:$date", 0)
+
+    fun countSent(goalId: Long, date: LocalDate) {
+        val editor = prefs.edit().putInt("$KEY_SENT_PREFIX$goalId:$date", sentCount(goalId, date) + 1)
+        val old = date.minusDays(KEEP_SENT_DAYS).toString()
+        prefs.all.keys.filter { it.startsWith(KEY_SENT_PREFIX) && it.substringAfterLast(':') < old }.forEach { editor.remove(it) }
+        editor.apply()
+    }
+
     /** Pauses whose end was already announced, as goal id and resume date, so the notice appears once. */
     fun announcedResumes(): Set<String> = prefs.getStringSet(KEY_RESUMES, emptySet()).orEmpty()
 
@@ -99,6 +117,12 @@ class SettingsStore(private val prefs: SharedPreferences) {
         minimumWeightPercent = prefs.getInt(KEY_MINIMUM_WEIGHT, Settings.DEFAULT_MINIMUM_WEIGHT_PERCENT),
         timeShiftMinutes = prefs.getLong(KEY_TIME_SHIFT, 0),
         askFailNote = prefs.getBoolean(KEY_ASK_NOTE, true),
+        maxNotificationsPerGoalPerDay = prefs.getInt(KEY_MAX_NOTIFICATIONS, NotificationCap.DEFAULT_MAX_PER_GOAL_PER_DAY),
+        quietHours = QuietHours(
+            enabled = prefs.getBoolean(KEY_QUIET_ON, false),
+            startMinute = prefs.getInt(KEY_QUIET_START, QuietHours().startMinute),
+            endMinute = prefs.getInt(KEY_QUIET_END, QuietHours().endMinute),
+        ),
     )
 
     private companion object {
@@ -113,7 +137,13 @@ class SettingsStore(private val prefs: SharedPreferences) {
         const val KEY_SETUP_SEEN = "setup_seen"
         const val KEY_RESUMES = "announced_resumes"
         const val KEY_ASK_NOTE = "ask_fail_note"
+        const val KEY_MAX_NOTIFICATIONS = "max_notifications_per_goal"
+        const val KEY_QUIET_ON = "quiet_hours_on"
+        const val KEY_QUIET_START = "quiet_hours_start"
+        const val KEY_QUIET_END = "quiet_hours_end"
+        const val KEY_SENT_PREFIX = "sent:"
         const val KEY_SEEN_FAILURES = "seen_failures"
         const val MAX_RESUMES = 100
+        const val KEEP_SENT_DAYS = 3L
     }
 }
