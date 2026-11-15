@@ -95,8 +95,18 @@ class WallpaperController(private val context: Context, val store: WallpaperStor
         val resolver = context.contentResolver
         val bounds = BitmapFactory.Options().apply { inJustDecodeBounds = true }
         // With inJustDecodeBounds the decoder returns no bitmap by design; only the size is wanted here.
-        resolver.openInputStream(uri)?.use { BitmapFactory.decodeStream(it, null, bounds) } ?: return@runCatching false
-        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) return@runCatching false
+        val opened = resolver.openInputStream(uri)?.use {
+            BitmapFactory.decodeStream(it, null, bounds)
+            true
+        } ?: false
+        if (!opened) {
+            android.util.Log.w("SkritiWallpaper", "could not open the picture: $uri")
+            return@runCatching false
+        }
+        if (bounds.outWidth <= 0 || bounds.outHeight <= 0) {
+            android.util.Log.w("SkritiWallpaper", "the picture has no readable size: $uri")
+            return@runCatching false
+        }
         val target = maxOf(context.resources.displayMetrics.heightPixels, MIN_TARGET)
         var sample = 1
         while (bounds.outHeight / (sample * 2) >= target) sample *= 2
@@ -110,7 +120,7 @@ class WallpaperController(private val context: Context, val store: WallpaperStor
         }
         store.bumpNormalVersion()
         true
-    }.getOrDefault(false)
+    }.onFailure { android.util.Log.w("SkritiWallpaper", "could not save the normal wallpaper", it) }.getOrDefault(false)
 
     private companion object {
         const val MIN_TARGET = 1600
