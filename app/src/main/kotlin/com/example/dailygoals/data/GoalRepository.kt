@@ -350,7 +350,9 @@ class GoalRepository(
                 finalisedThrough = state.finalisedThrough,
                 neutralDates = neutral,
             )
-            failures.forEach { failure ->
+            val unanswered = questions.map { (goal, date) -> goal.id to date }.toSet()
+            // A question about a lifted block is still open, so the window ending must not decide the day for the user.
+            failures.filterNot { it.reason == FailReason.WINDOW_END && (it.goalId to it.date) in unanswered }.forEach { failure ->
                 val existing = byKey[failure.goalId to failure.date]
                 write(failure.goalId, failure.date, DayStatus.FAILED, failure.reason, existing?.amount ?: 0, null, existing)
             }
