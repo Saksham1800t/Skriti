@@ -27,4 +27,5 @@ data class CheckIn(
     val failPrevActivity: String? = null,
     val failPlace: String? = null,
     val failSource: FailSource = FailSource.SELF_REPORTED,
+    val updatedAtMillis: Long = 0,
 )

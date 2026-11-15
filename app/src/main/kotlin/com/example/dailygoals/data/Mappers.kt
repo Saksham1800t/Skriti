@@ -162,6 +162,7 @@ fun CheckInEntity.toModel(): CheckIn = CheckIn(
     failPrevActivity = failPrevActivity,
     failPlace = failPlace,
     failSource = failSource,
+    updatedAtMillis = updatedAt,
 )
 
 fun PauseEventEntity.toPause(): GoalPause = GoalPause(goalId, LocalDate.parse(startDate), endDate?.let(LocalDate::parse))
