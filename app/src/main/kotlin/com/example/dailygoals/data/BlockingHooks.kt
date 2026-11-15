@@ -19,6 +19,9 @@ interface BlockingHooks {
     /** Every block that has not ended yet, with end times in real epoch millis. */
     fun activeBlocks(): List<ActiveBlock>
 
+    /** How many emergency pauses started between the two moments (real epoch millis). */
+    fun emergencyPausesBetween(fromMillis: Long, toMillis: Long): Int
+
     /** A held settings change has come due. */
     fun applySetting(key: String, value: String)
 

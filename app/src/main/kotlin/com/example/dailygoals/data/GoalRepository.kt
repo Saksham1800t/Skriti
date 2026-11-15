@@ -4,6 +4,11 @@ import androidx.room.withTransaction
 import com.example.dailygoals.data.backup.BackupCodec
 import com.example.dailygoals.engine.ActiveBlock
 import com.example.dailygoals.engine.AlarmRing
+import com.example.dailygoals.engine.GoalHistory
+import com.example.dailygoals.engine.GoalWeek
+import com.example.dailygoals.engine.NextWeek
+import com.example.dailygoals.engine.ReviewSchedule
+import com.example.dailygoals.engine.WeeklyReviewRules
 import com.example.dailygoals.engine.AlarmRules
 import com.example.dailygoals.engine.AmountRules
 import com.example.dailygoals.engine.BlockKind
@@ -76,6 +81,7 @@ class GoalRepository(
     private val pauseDao = database.pauseEventDao()
     private val rescueDao = database.rescueDayDao()
     private val stakeDao = database.stakeDao()
+    private val reviewDao = database.weeklyReviewDao()
     private val evaluationLock = Mutex()
 
     val goals: Flow<List<Goal>> = goalDao.observeAll().map { list -> list.map(GoalEntity::toModel) }
@@ -90,6 +96,66 @@ class GoalRepository(
     val pauses: Flow<List<GoalPause>> = pauseDao.observeAll().map { rows -> rows.map(PauseEventEntity::toPause) }
 
     val stakes: Flow<List<StakeEntity>> = stakeDao.observeAll()
+
+    val weeklyReviews: Flow<List<WeeklyReviewEntity>> = reviewDao.observeAll()
+
+    /** The review for the week that is due now, or null. Safe to call often; a week is made once. */
+    suspend fun generateDueReview(): LocalDate? {
+        val now = clock.now()
+        val existing = reviewDao.all().map { LocalDate.parse(it.weekStart) }.toSet()
+        val week = ReviewSchedule.weekToGenerate(now, settings.settings.value.reviewMinute, existing) ?: return null
+        buildReview(week)
+        return week
+    }
+
+    /** The next moment a review is due, as a wait from now, for the alarm. */
+    suspend fun nextReviewWait(): Duration {
+        val now = clock.now()
+        val existing = reviewDao.all().map { LocalDate.parse(it.weekStart) }.toSet()
+        val wake = ReviewSchedule.nextWake(now, settings.settings.value.reviewMinute, existing)
+        return Duration.between(now.atZone(clock.zone), wake.atZone(clock.zone))
+    }
+
+    private suspend fun buildReview(weekStart: LocalDate) {
+        val weekEnd = weekStart.plusDays(6)
+        val last = weekStart.minusDays(1)
+        val today = clock.now().toLocalDate()
+        val dayEnd = settings.settings.value.dayEndMinute
+        val checkIns = checkInDao.all().map(CheckInEntity::toModel)
+        val pauses = pauseDao.all().map(PauseEventEntity::toPause)
+        val rescued = rescuedDates()
+        val base = settings.evalState().neutralDates + rescued
+        val goals = goalDao.all().map(GoalEntity::toModel).filter { it.state == GoalState.ACTIVE && !it.schedule.isQuota }
+        val weeks = goals.map { goal ->
+            val neutral = NeutralDays.forGoal(goal.id, base, emptySet(), pauses, goal.schedule.startDate, weekEnd)
+            val all = GoalHistory.records(goal, checkIns, minOf(today, weekEnd), neutral, dayEnd, clock.zone)
+            val earlier = GoalHistory.records(goal, checkIns, last, neutral, dayEnd, clock.zone)
+            GoalWeek(goal.id, goal.name, all.filter { it.date >= weekStart }, earlier.filter { it.date > last.minusDays(7) }, goal.measurement.hasMinimumStep)
+        }
+        val zone = clock.zone
+        val from = weekStart.atStartOfDay(zone).toInstant().toEpochMilli() - clockOffsetMillis()
+        val until = weekEnd.plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli() - clockOffsetMillis()
+        val review = WeeklyReviewRules.review(weeks, rescued.count { it in weekStart..weekEnd }, punishments?.emergencyPausesBetween(from, until) ?: 0)
+        reviewDao.save(
+            WeeklyReviewEntity(
+                weekStart = weekStart.toString(),
+                generatedAt = epochMillis(),
+                summary = ReviewCodec.encode(review, goals.associate { it.id to it.name }),
+                decisions = ReviewCodec.encodeDecisions(review.decisions),
+            ),
+        )
+    }
+
+    /** Saves the user's choices and carries out Pause (7 days) and Delete; returns the first goal to modify, if any. */
+    suspend fun applyReviewChoices(weekStart: String, choices: Map<Long, NextWeek>): Long? {
+        val row = reviewDao.find(weekStart) ?: return null
+        reviewDao.save(row.copy(decisions = ReviewCodec.encodeDecisions(choices)))
+        choices.filterValues { it == NextWeek.PAUSE }.keys.forEach { pauseGoal(it, HabitPauseLength.DAYS_7, null) }
+        choices.filterValues { it == NextWeek.DELETE }.keys.forEach { archive(it) }
+        return choices.entries.firstOrNull { it.value == NextWeek.MODIFY }?.key
+    }
+
+    suspend fun reviewMadeFor(weekStart: LocalDate): Boolean = reviewDao.find(weekStart.toString()) != null
 
     /** Saves the optional "what happened" answer on today's failed result. */
     suspend fun saveFailNote(goalId: Long, date: LocalDate, tag: String?, note: String) {

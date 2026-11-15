@@ -247,6 +247,9 @@ interface WeeklyReviewDao {
     @Query("SELECT * FROM weekly_reviews ORDER BY weekStart DESC")
     fun observeAll(): Flow<List<WeeklyReviewEntity>>
 
+    @Query("SELECT * FROM weekly_reviews")
+    suspend fun all(): List<WeeklyReviewEntity>
+
     @Query("SELECT * FROM weekly_reviews WHERE weekStart = :weekStart")
     suspend fun find(weekStart: String): WeeklyReviewEntity?
 

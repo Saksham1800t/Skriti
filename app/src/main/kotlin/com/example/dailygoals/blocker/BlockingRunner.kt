@@ -42,6 +42,8 @@ class BlockingRunner(
 
     override fun activeBlocks(): List<ActiveBlock> = registry.blocks.filter { System.currentTimeMillis() < it.endsAtMillis }
 
+    override fun emergencyPausesBetween(fromMillis: Long, toMillis: Long): Int = registry.pauseUses.count { it.startedAtMillis in fromMillis until toMillis }
+
     override fun applySetting(key: String, value: String) {
         CoolingOffGate.applySetting(registry, key, value)
         BlockerService.instance?.recheckFront()

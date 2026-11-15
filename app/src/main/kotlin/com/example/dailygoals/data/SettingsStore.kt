@@ -2,6 +2,7 @@ package com.example.dailygoals.data
 
 import android.content.SharedPreferences
 import com.example.dailygoals.engine.NotificationCap
+import com.example.dailygoals.engine.ReviewSchedule
 import com.example.dailygoals.engine.QuietHours
 import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,6 +14,7 @@ data class Settings(
     val minimumWeightPercent: Int = DEFAULT_MINIMUM_WEIGHT_PERCENT,
     val timeShiftMinutes: Long = 0,
     val askFailNote: Boolean = true,
+    val reviewMinute: Int = ReviewSchedule.DEFAULT_MINUTE,
     val maxNotificationsPerGoalPerDay: Int = NotificationCap.DEFAULT_MAX_PER_GOAL_PER_DAY,
     val quietHours: QuietHours = QuietHours(),
 ) {
@@ -40,6 +42,7 @@ class SettingsStore(private val prefs: SharedPreferences) {
             .putInt(KEY_MINIMUM_WEIGHT, next.minimumWeightPercent)
             .putLong(KEY_TIME_SHIFT, next.timeShiftMinutes)
             .putBoolean(KEY_ASK_NOTE, next.askFailNote)
+            .putInt(KEY_REVIEW_MINUTE, next.reviewMinute)
             .putInt(KEY_MAX_NOTIFICATIONS, next.maxNotificationsPerGoalPerDay)
             .putBoolean(KEY_QUIET_ON, next.quietHours.enabled)
             .putInt(KEY_QUIET_START, next.quietHours.startMinute)
@@ -117,6 +120,7 @@ class SettingsStore(private val prefs: SharedPreferences) {
         minimumWeightPercent = prefs.getInt(KEY_MINIMUM_WEIGHT, Settings.DEFAULT_MINIMUM_WEIGHT_PERCENT),
         timeShiftMinutes = prefs.getLong(KEY_TIME_SHIFT, 0),
         askFailNote = prefs.getBoolean(KEY_ASK_NOTE, true),
+        reviewMinute = prefs.getInt(KEY_REVIEW_MINUTE, ReviewSchedule.DEFAULT_MINUTE),
         maxNotificationsPerGoalPerDay = prefs.getInt(KEY_MAX_NOTIFICATIONS, NotificationCap.DEFAULT_MAX_PER_GOAL_PER_DAY),
         quietHours = QuietHours(
             enabled = prefs.getBoolean(KEY_QUIET_ON, false),
@@ -137,6 +141,7 @@ class SettingsStore(private val prefs: SharedPreferences) {
         const val KEY_SETUP_SEEN = "setup_seen"
         const val KEY_RESUMES = "announced_resumes"
         const val KEY_ASK_NOTE = "ask_fail_note"
+        const val KEY_REVIEW_MINUTE = "review_minute"
         const val KEY_MAX_NOTIFICATIONS = "max_notifications_per_goal"
         const val KEY_QUIET_ON = "quiet_hours_on"
         const val KEY_QUIET_START = "quiet_hours_start"
