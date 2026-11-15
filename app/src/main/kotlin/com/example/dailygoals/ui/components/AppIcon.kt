@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.unit.dp
 
-enum class AppIconKind { LOGO, LIST, CALENDAR, CLOSE, PLUS, CHEVRON_LEFT, CHEVRON_RIGHT, SETTINGS }
+enum class AppIconKind { LOGO, LIST, CALENDAR, CLOSE, PLUS, CHEVRON_LEFT, CHEVRON_RIGHT, SETTINGS, CHART }
 
 private const val LINE_WIDTH = 0.09f
 
@@ -57,6 +57,11 @@ fun AppIcon(kind: AppIconKind, tint: Color, modifier: Modifier = Modifier) {
                 line(0.12f, 0.7f, 0.88f, 0.7f)
                 drawCircle(tint, radius = 0.12f * side, center = Offset(0.62f * side, 0.3f * side))
                 drawCircle(tint, radius = 0.12f * side, center = Offset(0.38f * side, 0.7f * side))
+            }
+            AppIconKind.CHART -> {
+                line(0.22f, 0.8f, 0.22f, 0.55f)
+                line(0.5f, 0.8f, 0.5f, 0.2f)
+                line(0.78f, 0.8f, 0.78f, 0.4f)
             }
             AppIconKind.CHEVRON_LEFT -> {
                 line(0.6f, 0.2f, 0.34f, 0.5f)
