@@ -6,6 +6,7 @@ import com.example.dailygoals.data.backup.BackupCodec
 import com.example.dailygoals.data.backup.BackupException
 import com.example.dailygoals.engine.Intensity
 import com.example.dailygoals.engine.PeriodStatus
+import com.example.dailygoals.model.FailSource
 import com.example.dailygoals.model.DayStatus
 import com.example.dailygoals.model.FailReason
 import com.example.dailygoals.model.Frequency
@@ -53,11 +54,11 @@ class BackupCodecTest {
         ),
         measurement = MeasurementColumns(MeasureType.AMOUNT, "min", 120, 20, "Put on shoes"),
         reminder = ReminderColumns(WarningMode.REPEATING, warningIntervalMin = 15, warningMinute = 1260, strongAlert = true),
-        avoidance = AvoidanceColumns("com.instagram.android\ncom.youtube"),
-        meaning = MeaningColumns(whyText = "Stronger engineer", ifFailText = "Choosing comfort", stakeText = "No social media tomorrow", recoveryAllowed = false),
+        avoidance = AvoidanceColumns("com.instagram.android\ncom.youtube", watchStart = 540, watchEnd = 1080),
+        meaning = MeaningColumns(whyText = "Stronger engineer", ifFailText = "Choosing comfort", stakeText = "No social media tomorrow", recoveryAllowed = false, ifText = "I want to open Instagram", thenText = "take 3 breaths"),
         alarm = AlarmColumns(alarmEnabled = true, alarmMinute = 315, alarmDays = 31, alarmSoundUri = "content://media/ring", alarmVibrate = false, snoozeMinutes = 10, snoozeLimit = 2, alarmDismissTicksGoal = true),
     )
-    private val checkIn = CheckInEntity(3, 7, "2026-11-10", DayStatus.FAILED, FailReason.WINDOW_END, null, 555, amount = 15, lateMinutes = null, punishmentSkipped = true, failTag = "Tired", failNote = "Stayed up late", recovered = true, recoveredAt = 99)
+    private val checkIn = CheckInEntity(3, 7, "2026-11-10", DayStatus.FAILED, FailReason.WINDOW_END, null, 555, amount = 15, lateMinutes = null, punishmentSkipped = true, failTag = "Tired", failNote = "Stayed up late", recovered = true, recoveredAt = 99, failTrigger = "Bored", failMood = 2, failPrevActivity = "Scrolling", failPlace = "Home", failSource = FailSource.DETECTED)
     private val log = AmountLogEntity(9, 7, "2026-11-10", 15, 444)
     private val period = PeriodResultEntity(1, 7, "2026-11-09", "2026-11-15", 4, 4, 7, 0, 0, 2, PeriodStatus.FAILED, "2026-11-13", 777)
     private val backup = Backup(AppDatabase.VERSION,listOf(goal), listOf(checkIn), listOf(log), listOf(period), dayEndMinute = 1380, minimumWeightPercent = 70)

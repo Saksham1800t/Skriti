@@ -6,7 +6,12 @@ data class GoalMeaning(
     val ifFail: String? = null,
     val stake: String? = null,
     val recoveryAllowed: Boolean = true,
+    /** "When ___, I will ___": a small plan shown when the goal is at risk. */
+    val ifText: String? = null,
+    val thenText: String? = null,
 ) {
+    val plan: String? get() = if (ifText.isNullOrBlank() || thenText.isNullOrBlank()) null else "When ${ifText.trim()}, I will ${thenText.trim()}"
+
     val hasWords: Boolean get() = !why.isNullOrBlank() || !ifFail.isNullOrBlank()
 
     companion object {

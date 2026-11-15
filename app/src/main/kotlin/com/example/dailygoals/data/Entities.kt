@@ -12,6 +12,7 @@ import com.example.dailygoals.engine.Intensity
 import com.example.dailygoals.engine.PeriodStatus
 import com.example.dailygoals.model.DayStatus
 import com.example.dailygoals.model.FailReason
+import com.example.dailygoals.model.FailSource
 import com.example.dailygoals.model.Frequency
 import com.example.dailygoals.model.GoalState
 import com.example.dailygoals.model.GoalType
@@ -73,6 +74,8 @@ data class DisciplineColumns(
 /** Package names, one per line. */
 data class AvoidanceColumns(
     @ColumnInfo(defaultValue = "''") val temptingPackages: String,
+    val watchStart: Int? = null,
+    val watchEnd: Int? = null,
 )
 
 data class MeaningColumns(
@@ -80,6 +83,8 @@ data class MeaningColumns(
     val ifFailText: String? = null,
     val stakeText: String? = null,
     @ColumnInfo(defaultValue = "1") val recoveryAllowed: Boolean = true,
+    val ifText: String? = null,
+    val thenText: String? = null,
 )
 
 data class AlarmColumns(
@@ -123,6 +128,11 @@ data class CheckInEntity(
     val failNote: String? = null,
     @ColumnInfo(defaultValue = "0") val recovered: Boolean = false,
     val recoveredAt: Long? = null,
+    val failTrigger: String? = null,
+    val failMood: Int? = null,
+    val failPrevActivity: String? = null,
+    val failPlace: String? = null,
+    @ColumnInfo(defaultValue = "'SELF_REPORTED'") val failSource: FailSource = FailSource.SELF_REPORTED,
 )
 
 @Entity(
@@ -252,4 +262,28 @@ data class StakeEntity(
     val status: String,
     val createdAt: Long,
     val resolvedAt: Long?,
+)
+
+/** A tempting app opened during a watch period. Only the package name and the time are kept. */
+@Entity(
+    tableName = "violation_events",
+    indices = [Index(value = ["goalId", "openedAt"])],
+    foreignKeys = [ForeignKey(entity = GoalEntity::class, parentColumns = ["id"], childColumns = ["goalId"])],
+)
+data class ViolationEventEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val goalId: Long,
+    val packageName: String,
+    val openedAt: Long,
+    val answer: String,
+)
+
+/** One weekly review: the generated figures and the Keep, Modify, Pause or Delete choice for each goal. */
+@Entity(tableName = "weekly_reviews", indices = [Index(value = ["weekStart"], unique = true)])
+data class WeeklyReviewEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val weekStart: String,
+    val generatedAt: Long,
+    val summary: String,
+    val decisions: String,
 )

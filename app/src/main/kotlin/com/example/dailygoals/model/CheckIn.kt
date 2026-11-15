@@ -8,6 +8,9 @@ val DayStatus.isMet: Boolean get() = this == DayStatus.DONE || this == DayStatus
 
 enum class FailReason { MANUAL, WINDOW_END, DAY_END }
 
+/** How a failure was found: the user said so, the app saw a tempting app open and the user confirmed, or the user changed the result. */
+enum class FailSource { SELF_REPORTED, DETECTED, CORRECTED }
+
 data class CheckIn(
     val goalId: Long,
     val date: LocalDate,
@@ -19,4 +22,9 @@ data class CheckIn(
     val failTag: String? = null,
     val failNote: String? = null,
     val recovered: Boolean = false,
+    val failTrigger: String? = null,
+    val failMood: Int? = null,
+    val failPrevActivity: String? = null,
+    val failPlace: String? = null,
+    val failSource: FailSource = FailSource.SELF_REPORTED,
 )

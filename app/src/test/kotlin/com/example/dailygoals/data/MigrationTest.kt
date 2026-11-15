@@ -83,6 +83,8 @@ class MigrationTest {
 
     private fun migrateToSeven() = MigrationSql.V6_TO_V7.forEach(::execute)
 
+    private fun migrateToEight() = MigrationSql.V7_TO_V8.forEach(::execute)
+
     /** Builds a fresh database of [version] beside the migrated one and compares structure table by table. */
     private fun assertStructureEqualsFresh(version: Int) {
         val migrated = tableNames(version).associateWith(::structureOf)
@@ -287,6 +289,47 @@ class MigrationTest {
         assertEquals(listOf(2), query("SELECT COUNT(*) FROM goals") { it.getInt(1) })
         assertEquals(listOf(2), query("SELECT COUNT(*) FROM check_ins") { it.getInt(1) })
         assertStructureEqualsFresh(7)
+    }
+
+    @Test
+    fun versionEightKeepsRowsAndStartsFailuresAsSelfReported() {
+        createVersion(7)
+        insertVersionOneData()
+        migrateToEight()
+        val goals = query("SELECT id, watchStart, watchEnd, ifText, thenText FROM goals ORDER BY id") {
+            listOf(it.getInt(1), it.getObject(2), it.getObject(3), it.getObject(4), it.getObject(5))
+        }
+        assertEquals(listOf(listOf(1, null, null, null, null), listOf(2, null, null, null, null)), goals)
+        val sources = query("SELECT failSource, failTrigger, failMood, failPrevActivity, failPlace FROM check_ins ORDER BY id") {
+            listOf(it.getString(1), it.getObject(2), it.getObject(3), it.getObject(4), it.getObject(5))
+        }
+        assertEquals(listOf(listOf("SELF_REPORTED", null, null, null, null), listOf("SELF_REPORTED", null, null, null, null)), sources)
+        execute("INSERT INTO violation_events (goalId, packageName, openedAt, answer) VALUES (2, 'com.instagram.android', 5, 'UNANSWERED')")
+        execute("INSERT INTO weekly_reviews (weekStart, generatedAt, summary, decisions) VALUES ('2026-11-09', 5, '{}', '{}')")
+        assertTrue(runCatching { execute("INSERT INTO weekly_reviews (weekStart, generatedAt, summary, decisions) VALUES ('2026-11-09', 6, '{}', '{}')") }.isFailure)
+    }
+
+    @Test
+    fun versionEightStructureEqualsAFreshVersionEightDatabase() {
+        createVersion(7)
+        migrateToEight()
+        assertStructureEqualsFresh(8)
+    }
+
+    @Test
+    fun migratingStraightFromVersionOneToEightKeepsEverything() {
+        createVersion(1)
+        insertVersionOneData()
+        migrate()
+        migrateToThree()
+        migrateToFour()
+        migrateToFive()
+        migrateToSix()
+        migrateToSeven()
+        migrateToEight()
+        assertEquals(listOf(2), query("SELECT COUNT(*) FROM goals") { it.getInt(1) })
+        assertEquals(listOf(2), query("SELECT COUNT(*) FROM check_ins") { it.getInt(1) })
+        assertStructureEqualsFresh(8)
     }
 
     @Test

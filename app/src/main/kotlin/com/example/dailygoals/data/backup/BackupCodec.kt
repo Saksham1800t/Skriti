@@ -16,6 +16,7 @@ import com.example.dailygoals.engine.Intensity
 import com.example.dailygoals.engine.PeriodStatus
 import com.example.dailygoals.model.DayStatus
 import com.example.dailygoals.model.FailReason
+import com.example.dailygoals.model.FailSource
 import com.example.dailygoals.model.Frequency
 import com.example.dailygoals.model.GoalState
 import com.example.dailygoals.model.GoalType
@@ -140,6 +141,10 @@ object BackupCodec {
         put("ifFailText", goal.meaning.ifFailText ?: JSONObject.NULL)
         put("stakeText", goal.meaning.stakeText ?: JSONObject.NULL)
         put("recoveryAllowed", goal.meaning.recoveryAllowed)
+        put("watchStart", goal.avoidance.watchStart ?: JSONObject.NULL)
+        put("watchEnd", goal.avoidance.watchEnd ?: JSONObject.NULL)
+        put("ifText", goal.meaning.ifText ?: JSONObject.NULL)
+        put("thenText", goal.meaning.thenText ?: JSONObject.NULL)
         put("alarmEnabled", goal.alarm.alarmEnabled)
         put("alarmMinute", goal.alarm.alarmMinute ?: JSONObject.NULL)
         put("alarmDays", goal.alarm.alarmDays)
@@ -202,12 +207,14 @@ object BackupCodec {
             warningMinute = json.optInt("warningMinute", 1200),
             strongAlert = json.optBoolean("strongAlert", false),
         ),
-        avoidance = AvoidanceColumns(json.optString("temptingPackages", "")),
+        avoidance = AvoidanceColumns(json.optString("temptingPackages", ""), json.intOrNull("watchStart"), json.intOrNull("watchEnd")),
         meaning = MeaningColumns(
             whyText = json.stringOrNull("whyText"),
             ifFailText = json.stringOrNull("ifFailText"),
             stakeText = json.stringOrNull("stakeText"),
             recoveryAllowed = json.optBoolean("recoveryAllowed", true),
+            ifText = json.stringOrNull("ifText"),
+            thenText = json.stringOrNull("thenText"),
         ),
         alarm = AlarmColumns(
             alarmEnabled = json.optBoolean("alarmEnabled", false),
@@ -235,6 +242,11 @@ object BackupCodec {
         put("failTag", row.failTag ?: JSONObject.NULL)
         put("failNote", row.failNote ?: JSONObject.NULL)
         put("recovered", row.recovered)
+        put("failTrigger", row.failTrigger ?: JSONObject.NULL)
+        put("failMood", row.failMood ?: JSONObject.NULL)
+        put("failPrevActivity", row.failPrevActivity ?: JSONObject.NULL)
+        put("failPlace", row.failPlace ?: JSONObject.NULL)
+        put("failSource", row.failSource.name)
         put("recoveredAt", row.recoveredAt ?: JSONObject.NULL)
     }
 
@@ -252,6 +264,11 @@ object BackupCodec {
         failTag = json.stringOrNull("failTag"),
         failNote = json.stringOrNull("failNote"),
         recovered = json.optBoolean("recovered", false),
+        failTrigger = json.stringOrNull("failTrigger"),
+        failMood = json.intOrNull("failMood"),
+        failPrevActivity = json.stringOrNull("failPrevActivity"),
+        failPlace = json.stringOrNull("failPlace"),
+        failSource = FailSource.valueOf(json.optString("failSource", "SELF_REPORTED")),
         recoveredAt = if (json.isNull("recoveredAt") || !json.has("recoveredAt")) null else json.getLong("recoveredAt"),
     )
 

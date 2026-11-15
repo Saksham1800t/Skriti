@@ -5,6 +5,25 @@ package com.example.dailygoals.data
  * Existing rows are kept; new columns get the defaults that match the Room entities.
  */
 object MigrationSql {
+    val V7_TO_V8: List<String> = listOf(
+        "ALTER TABLE `goals` ADD COLUMN `watchStart` INTEGER",
+        "ALTER TABLE `goals` ADD COLUMN `watchEnd` INTEGER",
+        "ALTER TABLE `goals` ADD COLUMN `ifText` TEXT",
+        "ALTER TABLE `goals` ADD COLUMN `thenText` TEXT",
+        "ALTER TABLE `check_ins` ADD COLUMN `failTrigger` TEXT",
+        "ALTER TABLE `check_ins` ADD COLUMN `failMood` INTEGER",
+        "ALTER TABLE `check_ins` ADD COLUMN `failPrevActivity` TEXT",
+        "ALTER TABLE `check_ins` ADD COLUMN `failPlace` TEXT",
+        "ALTER TABLE `check_ins` ADD COLUMN `failSource` TEXT NOT NULL DEFAULT 'SELF_REPORTED'",
+        "CREATE TABLE IF NOT EXISTS `violation_events` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `goalId` INTEGER NOT NULL, " +
+            "`packageName` TEXT NOT NULL, `openedAt` INTEGER NOT NULL, `answer` TEXT NOT NULL, " +
+            "FOREIGN KEY(`goalId`) REFERENCES `goals`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "CREATE INDEX IF NOT EXISTS `index_violation_events_goalId_openedAt` ON `violation_events` (`goalId`, `openedAt`)",
+        "CREATE TABLE IF NOT EXISTS `weekly_reviews` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `weekStart` TEXT NOT NULL, " +
+            "`generatedAt` INTEGER NOT NULL, `summary` TEXT NOT NULL, `decisions` TEXT NOT NULL)",
+        "CREATE UNIQUE INDEX IF NOT EXISTS `index_weekly_reviews_weekStart` ON `weekly_reviews` (`weekStart`)",
+    )
+
     val V6_TO_V7: List<String> = listOf(
         "ALTER TABLE `goals` ADD COLUMN `alarmEnabled` INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE `goals` ADD COLUMN `alarmMinute` INTEGER",

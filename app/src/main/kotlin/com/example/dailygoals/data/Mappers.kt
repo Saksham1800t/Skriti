@@ -64,8 +64,12 @@ fun GoalEntity.toModel(): Goal = Goal(
         allDayMinute = reminder.warningMinute,
         strongAlert = reminder.strongAlert,
     ),
-    avoidance = GoalAvoidance(avoidance.temptingPackages.lines().filter { it.isNotBlank() }.toSet()),
-    meaning = GoalMeaning(why = meaning.whyText, ifFail = meaning.ifFailText, stake = meaning.stakeText, recoveryAllowed = meaning.recoveryAllowed),
+    avoidance = GoalAvoidance(
+        temptingPackages = avoidance.temptingPackages.lines().filter { it.isNotBlank() }.toSet(),
+        watchStart = avoidance.watchStart,
+        watchEnd = avoidance.watchEnd,
+    ),
+    meaning = GoalMeaning(why = meaning.whyText, ifFail = meaning.ifFailText, stake = meaning.stakeText, recoveryAllowed = meaning.recoveryAllowed, ifText = meaning.ifText, thenText = meaning.thenText),
     alarm = GoalAlarm(
         enabled = alarm.alarmEnabled,
         minute = alarm.alarmMinute,
@@ -121,12 +125,14 @@ fun Goal.toEntity(): GoalEntity = GoalEntity(
         warningMinute = reminder.allDayMinute,
         strongAlert = reminder.strongAlert,
     ),
-    avoidance = AvoidanceColumns(avoidance.temptingPackages.sorted().joinToString("\n")),
+    avoidance = AvoidanceColumns(avoidance.temptingPackages.sorted().joinToString("\n"), avoidance.watchStart, avoidance.watchEnd),
     meaning = MeaningColumns(
         whyText = meaning.why?.trim()?.ifEmpty { null },
         ifFailText = meaning.ifFail?.trim()?.ifEmpty { null },
         stakeText = meaning.stake?.trim()?.ifEmpty { null },
         recoveryAllowed = meaning.recoveryAllowed,
+        ifText = meaning.ifText?.trim()?.ifEmpty { null },
+        thenText = meaning.thenText?.trim()?.ifEmpty { null },
     ),
     alarm = AlarmColumns(
         alarmEnabled = alarm.enabled,
@@ -151,6 +157,11 @@ fun CheckInEntity.toModel(): CheckIn = CheckIn(
     failTag = failTag,
     failNote = failNote,
     recovered = recovered,
+    failTrigger = failTrigger,
+    failMood = failMood,
+    failPrevActivity = failPrevActivity,
+    failPlace = failPlace,
+    failSource = failSource,
 )
 
 fun PauseEventEntity.toPause(): GoalPause = GoalPause(goalId, LocalDate.parse(startDate), endDate?.let(LocalDate::parse))

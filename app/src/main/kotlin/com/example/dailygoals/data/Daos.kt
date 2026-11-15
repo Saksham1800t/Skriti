@@ -223,3 +223,36 @@ interface StakeDao {
     @Query("DELETE FROM stakes")
     suspend fun deleteAll()
 }
+
+@Dao
+interface ViolationDao {
+    @Insert
+    suspend fun insert(event: ViolationEventEntity): Long
+
+    @Query("SELECT * FROM violation_events ORDER BY openedAt DESC")
+    fun observeAll(): Flow<List<ViolationEventEntity>>
+
+    @Query("SELECT * FROM violation_events ORDER BY openedAt DESC")
+    suspend fun all(): List<ViolationEventEntity>
+
+    @Query("UPDATE violation_events SET answer = :answer WHERE id = :id")
+    suspend fun setAnswer(id: Long, answer: String)
+
+    @Query("DELETE FROM violation_events")
+    suspend fun deleteAll()
+}
+
+@Dao
+interface WeeklyReviewDao {
+    @Query("SELECT * FROM weekly_reviews ORDER BY weekStart DESC")
+    fun observeAll(): Flow<List<WeeklyReviewEntity>>
+
+    @Query("SELECT * FROM weekly_reviews WHERE weekStart = :weekStart")
+    suspend fun find(weekStart: String): WeeklyReviewEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun save(review: WeeklyReviewEntity)
+
+    @Query("DELETE FROM weekly_reviews")
+    suspend fun deleteAll()
+}

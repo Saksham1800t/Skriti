@@ -13,7 +13,7 @@ import java.io.File
     entities = [
         GoalEntity::class, CheckInEntity::class, AmountLogEntity::class, PeriodResultEntity::class, WarningMarkEntity::class,
         BlockAttemptEntity::class, TempAccessEntity::class, PendingChangeEntity::class,
-        PauseEventEntity::class, RescueDayEntity::class, StakeEntity::class,
+        PauseEventEntity::class, RescueDayEntity::class, StakeEntity::class, ViolationEventEntity::class, WeeklyReviewEntity::class,
     ],
     version = AppDatabase.VERSION,
     exportSchema = true,
@@ -30,10 +30,18 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun pauseEventDao(): PauseEventDao
     abstract fun rescueDayDao(): RescueDayDao
     abstract fun stakeDao(): StakeDao
+    abstract fun violationDao(): ViolationDao
+    abstract fun weeklyReviewDao(): WeeklyReviewDao
 
     companion object {
-        const val VERSION = 7
+        const val VERSION = 8
         private const val FILE_NAME = "daily_goals.db"
+
+        private val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                MigrationSql.V7_TO_V8.forEach(db::execSQL)
+            }
+        }
 
         private val MIGRATION_6_7 = object : Migration(6, 7) {
             override fun migrate(db: SupportSQLiteDatabase) {
@@ -75,7 +83,7 @@ abstract class AppDatabase : RoomDatabase() {
         fun create(context: Context): AppDatabase {
             backUpBeforeMigration(context)
             return Room.databaseBuilder(context, AppDatabase::class.java, FILE_NAME)
-                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7)
+                .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6, MIGRATION_6_7, MIGRATION_7_8)
                 .build()
         }
 
