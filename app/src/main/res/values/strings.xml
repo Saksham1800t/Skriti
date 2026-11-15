@@ -508,4 +508,13 @@
     <string name="settings_ask_note">Ask what happened when I fail a goal</string>
     <string name="settings_failures">Failures</string>
     <string name="failure_stake">Tomorrow: %1$s</string>
+
+    <string name="warn_stage_stronger">Still open. %1$s</string>
+    <string name="warn_stage_final">Final warning. %1$s</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_max_notifications">Most warnings per goal per day</string>
+    <string name="settings_quiet_hours">Quiet hours</string>
+    <string name="settings_quiet_hours_help">No warning notifications during these hours, except the final warning. They still show inside the app.</string>
+    <string name="settings_quiet_from">From</string>
+    <string name="settings_quiet_to">Until</string>
 </resources>

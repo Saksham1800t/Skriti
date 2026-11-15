@@ -35,6 +35,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.dailygoals.engine.NotificationCap
+import com.example.dailygoals.ui.components.StepperRow
 import com.example.dailygoals.R
 import com.example.dailygoals.SkritiApp
 import com.example.dailygoals.engine.CoolingOff
@@ -119,6 +121,30 @@ fun SettingsScreen(
             Text(stringResource(R.string.settings_day_end_help), fontSize = 12.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             TimeBox(R.string.settings_day_end_label, R.string.settings_day_end, settings.dayEndMinute, Modifier.padding(top = 8.dp)) {
                 viewModel.setDayEnd(it)
+            }
+        }
+
+        Group(R.string.settings_notifications) {
+            StepperRow(
+                stringResource(R.string.settings_max_notifications),
+                settings.maxNotificationsPerGoalPerDay.toString(),
+                NotificationCap.MAX_RANGE,
+                settings.maxNotificationsPerGoalPerDay,
+            ) { viewModel.setMaxNotifications(it) }
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.settings_quiet_hours), fontSize = 15.sp, modifier = Modifier.weight(1f))
+                Switch(checked = settings.quietHours.enabled, onCheckedChange = { viewModel.setQuietHours(settings.quietHours.copy(enabled = it)) })
+            }
+            Text(stringResource(R.string.settings_quiet_hours_help), fontSize = 12.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (settings.quietHours.enabled) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                    TimeBox(R.string.settings_quiet_from, R.string.settings_quiet_from, settings.quietHours.startMinute, Modifier.weight(1f)) {
+                        viewModel.setQuietHours(settings.quietHours.copy(startMinute = it))
+                    }
+                    TimeBox(R.string.settings_quiet_to, R.string.settings_quiet_to, settings.quietHours.endMinute, Modifier.weight(1f)) {
+                        viewModel.setQuietHours(settings.quietHours.copy(endMinute = it))
+                    }
+                }
             }
         }
 

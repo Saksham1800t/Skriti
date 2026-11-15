@@ -6,6 +6,8 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.dailygoals.SkritiApp
+import com.example.dailygoals.engine.NotificationCap
+import com.example.dailygoals.engine.QuietHours
 import com.example.dailygoals.data.GoalRepository
 import com.example.dailygoals.data.Settings
 import com.example.dailygoals.data.SettingsStore
@@ -55,6 +57,10 @@ class SettingsViewModel(
     } catch (error: BackupException) {
         Result.failure(error)
     }
+
+    fun setMaxNotifications(count: Int) = settingsStore.update { it.copy(maxNotificationsPerGoalPerDay = count.coerceIn(NotificationCap.MAX_RANGE)) }
+
+    fun setQuietHours(quiet: QuietHours) = settingsStore.update { it.copy(quietHours = quiet) }
 
     fun setAskFailNote(on: Boolean) = settingsStore.update { it.copy(askFailNote = on) }
 
