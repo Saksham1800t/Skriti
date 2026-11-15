@@ -79,6 +79,8 @@ class MigrationTest {
 
     private fun migrateToFive() = MigrationSql.V4_TO_V5.forEach(::execute)
 
+    private fun migrateToSix() = MigrationSql.V5_TO_V6.forEach(::execute)
+
     /** Builds a fresh database of [version] beside the migrated one and compares structure table by table. */
     private fun assertStructureEqualsFresh(version: Int) {
         val migrated = tableNames(version).associateWith(::structureOf)
@@ -194,6 +196,60 @@ class MigrationTest {
         assertEquals(listOf(2), query("SELECT COUNT(*) FROM goals") { it.getInt(1) })
         assertEquals(listOf(2), query("SELECT COUNT(*) FROM check_ins") { it.getInt(1) })
         assertStructureEqualsFresh(5)
+    }
+
+    @Test
+    fun versionSixKeepsRowsAndAddsTheNewColumnsAndTables() {
+        createVersion(5)
+        insertVersionOneData()
+        migrateToSix()
+        val goals = query("SELECT id, whyText, ifFailText, stakeText, recoveryAllowed FROM goals ORDER BY id") {
+            listOf(it.getInt(1), it.getString(2), it.getString(3), it.getString(4), it.getInt(5))
+        }
+        assertEquals(listOf(listOf(1, null, null, null, 1), listOf(2, null, null, null, 1)), goals)
+        val checkIns = query("SELECT failTag, failNote, recovered, recoveredAt FROM check_ins ORDER BY id") {
+            listOf(it.getString(1), it.getString(2), it.getInt(3), it.getObject(4))
+        }
+        assertEquals(listOf(listOf(null, null, 0, null), listOf(null, null, 0, null)), checkIns)
+        execute("INSERT INTO pause_events (goalId, startDate, endDate, createdAt) VALUES (1, '2026-11-10', NULL, 5)")
+        execute("INSERT INTO rescue_days (date, weekStart, usedAt) VALUES ('2026-11-10', '2026-11-09', 5)")
+        execute("INSERT INTO stakes (goalId, sourceDate, dueDate, text, status, createdAt, resolvedAt) VALUES (2, '2026-11-10', '2026-11-11', 'No phone', 'PENDING', 5, NULL)")
+        assertEquals(listOf(2), query("SELECT COUNT(*) FROM check_ins") { it.getInt(1) })
+    }
+
+    @Test
+    fun aGoalCanHaveOnlyOneStakePerFailedDayAndOneRescuePerDate() {
+        createVersion(5)
+        insertVersionOneData()
+        migrateToSix()
+        execute("INSERT INTO stakes (goalId, sourceDate, dueDate, text, status, createdAt) VALUES (2, '2026-11-10', '2026-11-11', 'a', 'PENDING', 5)")
+        val duplicateStake = runCatching {
+            execute("INSERT INTO stakes (goalId, sourceDate, dueDate, text, status, createdAt) VALUES (2, '2026-11-10', '2026-11-11', 'b', 'PENDING', 6)")
+        }
+        assertTrue(duplicateStake.isFailure)
+        execute("INSERT INTO rescue_days (date, weekStart, usedAt) VALUES ('2026-11-10', '2026-11-09', 5)")
+        assertTrue(runCatching { execute("INSERT INTO rescue_days (date, weekStart, usedAt) VALUES ('2026-11-10', '2026-11-09', 6)") }.isFailure)
+    }
+
+    @Test
+    fun versionSixStructureEqualsAFreshVersionSixDatabase() {
+        createVersion(5)
+        migrateToSix()
+        assertStructureEqualsFresh(6)
+    }
+
+    @Test
+    fun migratingStraightFromVersionOneToSixKeepsEverything() {
+        createVersion(1)
+        insertVersionOneData()
+        migrate()
+        migrateToThree()
+        migrateToFour()
+        migrateToFive()
+        migrateToSix()
+        assertEquals(listOf(2), query("SELECT COUNT(*) FROM goals") { it.getInt(1) })
+        assertEquals(listOf(2), query("SELECT COUNT(*) FROM check_ins") { it.getInt(1) })
+        assertStructureEqualsFresh(6)
     }
 
     @Test

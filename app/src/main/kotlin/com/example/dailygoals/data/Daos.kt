@@ -166,3 +166,60 @@ interface PendingChangeDao {
     @Query("DELETE FROM pending_changes")
     suspend fun deleteAll()
 }
+
+@Dao
+interface PauseEventDao {
+    @Query("SELECT * FROM pause_events ORDER BY startDate")
+    fun observeAll(): Flow<List<PauseEventEntity>>
+
+    @Query("SELECT * FROM pause_events ORDER BY startDate")
+    suspend fun all(): List<PauseEventEntity>
+
+    @Insert
+    suspend fun insert(event: PauseEventEntity): Long
+
+    @Query("UPDATE pause_events SET endDate = :endDate WHERE id = :id")
+    suspend fun setEnd(id: Long, endDate: String?)
+
+    @Query("DELETE FROM pause_events WHERE id = :id")
+    suspend fun delete(id: Long)
+
+    @Query("DELETE FROM pause_events")
+    suspend fun deleteAll()
+}
+
+@Dao
+interface RescueDayDao {
+    @Query("SELECT * FROM rescue_days ORDER BY date")
+    fun observeAll(): Flow<List<RescueDayEntity>>
+
+    @Query("SELECT * FROM rescue_days ORDER BY date")
+    suspend fun all(): List<RescueDayEntity>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(day: RescueDayEntity): Long
+
+    @Query("DELETE FROM rescue_days")
+    suspend fun deleteAll()
+}
+
+@Dao
+interface StakeDao {
+    @Query("SELECT * FROM stakes ORDER BY dueDate, id")
+    fun observeAll(): Flow<List<StakeEntity>>
+
+    @Query("SELECT * FROM stakes ORDER BY dueDate, id")
+    suspend fun all(): List<StakeEntity>
+
+    @Query("SELECT * FROM stakes WHERE goalId = :goalId AND sourceDate = :sourceDate")
+    suspend fun find(goalId: Long, sourceDate: String): StakeEntity?
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insert(stake: StakeEntity): Long
+
+    @Query("UPDATE stakes SET status = :status, resolvedAt = :resolvedAt WHERE id = :id")
+    suspend fun setStatus(id: Long, status: String, resolvedAt: Long?)
+
+    @Query("DELETE FROM stakes")
+    suspend fun deleteAll()
+}

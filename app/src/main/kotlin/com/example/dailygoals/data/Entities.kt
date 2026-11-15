@@ -32,6 +32,7 @@ data class GoalEntity(
     @Embedded val measurement: MeasurementColumns,
     @Embedded val reminder: ReminderColumns,
     @Embedded val avoidance: AvoidanceColumns,
+    @Embedded val meaning: MeaningColumns = MeaningColumns(),
 )
 
 data class ReminderColumns(
@@ -73,6 +74,13 @@ data class AvoidanceColumns(
     @ColumnInfo(defaultValue = "''") val temptingPackages: String,
 )
 
+data class MeaningColumns(
+    val whyText: String? = null,
+    val ifFailText: String? = null,
+    val stakeText: String? = null,
+    @ColumnInfo(defaultValue = "1") val recoveryAllowed: Boolean = true,
+)
+
 data class MeasurementColumns(
     @ColumnInfo(defaultValue = "'CHECK'") val measureType: MeasureType,
     @ColumnInfo(defaultValue = "''") val unit: String,
@@ -99,6 +107,10 @@ data class CheckInEntity(
     @ColumnInfo(defaultValue = "0") val amount: Int = 0,
     val lateMinutes: Int? = null,
     @ColumnInfo(defaultValue = "0") val punishmentSkipped: Boolean = false,
+    val failTag: String? = null,
+    val failNote: String? = null,
+    @ColumnInfo(defaultValue = "0") val recovered: Boolean = false,
+    val recoveredAt: Long? = null,
 )
 
 @Entity(
@@ -188,4 +200,44 @@ data class PendingChangeEntity(
     val newValue: String,
     val appliesAt: Long,
     val createdAt: Long,
+)
+
+/** A stretch of days when a goal is paused. [endDate] is the last paused day; null means until it is resumed. */
+@Entity(
+    tableName = "pause_events",
+    indices = [Index(value = ["goalId"])],
+    foreignKeys = [ForeignKey(entity = GoalEntity::class, parentColumns = ["id"], childColumns = ["goalId"])],
+)
+data class PauseEventEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val goalId: Long,
+    val startDate: String,
+    val endDate: String?,
+    val createdAt: Long,
+)
+
+/** A rescue day: one per ISO week, neutral for every goal. */
+@Entity(tableName = "rescue_days", indices = [Index(value = ["date"], unique = true), Index(value = ["weekStart"])])
+data class RescueDayEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val date: String,
+    val weekStart: String,
+    val usedAt: Long,
+)
+
+/** The penalty a goal set for itself, created by a failure and shown on the next day. */
+@Entity(
+    tableName = "stakes",
+    indices = [Index(value = ["goalId", "sourceDate"], unique = true), Index(value = ["dueDate"])],
+    foreignKeys = [ForeignKey(entity = GoalEntity::class, parentColumns = ["id"], childColumns = ["goalId"])],
+)
+data class StakeEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val goalId: Long,
+    val sourceDate: String,
+    val dueDate: String,
+    val text: String,
+    val status: String,
+    val createdAt: Long,
+    val resolvedAt: Long?,
 )

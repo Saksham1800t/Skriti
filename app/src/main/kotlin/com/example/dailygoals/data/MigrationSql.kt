@@ -5,6 +5,31 @@ package com.example.dailygoals.data
  * Existing rows are kept; new columns get the defaults that match the Room entities.
  */
 object MigrationSql {
+    val V5_TO_V6: List<String> = listOf(
+        "ALTER TABLE `goals` ADD COLUMN `whyText` TEXT",
+        "ALTER TABLE `goals` ADD COLUMN `ifFailText` TEXT",
+        "ALTER TABLE `goals` ADD COLUMN `stakeText` TEXT",
+        "ALTER TABLE `goals` ADD COLUMN `recoveryAllowed` INTEGER NOT NULL DEFAULT 1",
+        "ALTER TABLE `check_ins` ADD COLUMN `failTag` TEXT",
+        "ALTER TABLE `check_ins` ADD COLUMN `failNote` TEXT",
+        "ALTER TABLE `check_ins` ADD COLUMN `recovered` INTEGER NOT NULL DEFAULT 0",
+        "ALTER TABLE `check_ins` ADD COLUMN `recoveredAt` INTEGER",
+        "CREATE TABLE IF NOT EXISTS `pause_events` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `goalId` INTEGER NOT NULL, " +
+            "`startDate` TEXT NOT NULL, `endDate` TEXT, `createdAt` INTEGER NOT NULL, " +
+            "FOREIGN KEY(`goalId`) REFERENCES `goals`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "CREATE INDEX IF NOT EXISTS `index_pause_events_goalId` ON `pause_events` (`goalId`)",
+        "CREATE TABLE IF NOT EXISTS `rescue_days` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `date` TEXT NOT NULL, " +
+            "`weekStart` TEXT NOT NULL, `usedAt` INTEGER NOT NULL)",
+        "CREATE UNIQUE INDEX IF NOT EXISTS `index_rescue_days_date` ON `rescue_days` (`date`)",
+        "CREATE INDEX IF NOT EXISTS `index_rescue_days_weekStart` ON `rescue_days` (`weekStart`)",
+        "CREATE TABLE IF NOT EXISTS `stakes` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `goalId` INTEGER NOT NULL, " +
+            "`sourceDate` TEXT NOT NULL, `dueDate` TEXT NOT NULL, `text` TEXT NOT NULL, `status` TEXT NOT NULL, " +
+            "`createdAt` INTEGER NOT NULL, `resolvedAt` INTEGER, " +
+            "FOREIGN KEY(`goalId`) REFERENCES `goals`(`id`) ON UPDATE NO ACTION ON DELETE NO ACTION )",
+        "CREATE UNIQUE INDEX IF NOT EXISTS `index_stakes_goalId_sourceDate` ON `stakes` (`goalId`, `sourceDate`)",
+        "CREATE INDEX IF NOT EXISTS `index_stakes_dueDate` ON `stakes` (`dueDate`)",
+    )
+
     val V4_TO_V5: List<String> = listOf(
         "ALTER TABLE `goals` ADD COLUMN `scheduledBlockEnabled` INTEGER NOT NULL DEFAULT 0",
         "ALTER TABLE `goals` ADD COLUMN `autoKeepAtWindowEnd` INTEGER NOT NULL DEFAULT 1",
