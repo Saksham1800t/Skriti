@@ -3,6 +3,8 @@ package com.example.dailygoals.ui.insights
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
@@ -17,6 +19,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -71,6 +74,7 @@ fun WeeklyReviewScreen(weekStart: String, onBack: () -> Unit, onModify: (Long) -
     val start = LocalDate.parse(weekStart)
     Column(modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 12.dp)) {
         BackHeader(stringResource(R.string.review_week_range, start.format(WEEK_FORMAT), start.plusDays(6).format(WEEK_FORMAT)), onBack)
+        Spacer(Modifier.height(16.dp))
         val current = review ?: run {
             Text(stringResource(R.string.review_missing), color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 16.dp))
             return@Column
@@ -133,15 +137,19 @@ private fun Summary(review: WeeklyReview) {
             Text("${review.completionPercent}%", fontSize = 30.sp, fontWeight = FontWeight.Bold)
             val change = review.consistencyChangePoints
             Text(
-                if (change >= 0) stringResource(R.string.review_up, change) else stringResource(R.string.review_down, -change),
+                when {
+                    change == null -> stringResource(R.string.review_first_week)
+                    change >= 0 -> stringResource(R.string.review_up, change)
+                    else -> stringResource(R.string.review_down, -change)
+                },
                 fontSize = 13.sp,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         }
         Column(horizontalAlignment = androidx.compose.ui.Alignment.End) {
-            Text(stringResource(R.string.review_habits, review.habits), fontSize = 12.5.sp)
+            Text(pluralStringResource(R.plurals.review_habits, review.habits, review.habits), fontSize = 12.5.sp)
             Text(stringResource(R.string.review_failures_rescues, review.failures, review.rescues), fontSize = 12.5.sp)
-            Text(stringResource(R.string.review_pauses_streak, review.emergencyPauses, review.bestStreak), fontSize = 12.5.sp)
+            Text(pluralStringResource(R.plurals.review_pauses, review.emergencyPauses, review.emergencyPauses) + " · " + stringResource(R.string.review_streak, review.bestStreak), fontSize = 12.5.sp)
         }
     }
 }

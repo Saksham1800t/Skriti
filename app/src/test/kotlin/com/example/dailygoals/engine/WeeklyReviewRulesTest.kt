@@ -34,6 +34,12 @@ class WeeklyReviewRulesTest {
     }
 
     @Test
+    fun theFirstWeekHasNothingToCompareWith() {
+        val run = GoalWeek(1, "Run", week(monday, done, done, failed), emptyList(), hasMinimum = false)
+        assertNull(WeeklyReviewRules.review(listOf(run), 0, 0).consistencyChangePoints)
+    }
+
+    @Test
     fun theBiggestImprovementNeedsAtLeastFivePointsAndEnoughDays() {
         val better = GoalWeek(1, "Mornings", week(monday, done, done, done, done), week(lastMonday, done, failed, failed, done), true)
         val same = GoalWeek(2, "Read", week(monday, done, done, done, done), week(lastMonday, done, done, done, done), true)

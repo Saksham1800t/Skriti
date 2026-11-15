@@ -17,7 +17,7 @@ object ReviewCodec {
         put("rescues", review.rescues)
         put("pauses", review.emergencyPauses)
         put("streak", review.bestStreak)
-        put("change", review.consistencyChangePoints)
+        review.consistencyChangePoints?.let { put("change", it) }
         review.improved?.let { put("improved", JSONObject().put("id", it.goalId).put("name", it.name).put("delta", it.deltaPoints)) }
         review.worst?.let { put("worst", JSONObject().put("id", it.goalId).put("name", it.name).put("failed", it.failed).put("due", it.due)) }
         put("reasons", pairs(review.reasons))
@@ -41,7 +41,7 @@ object ReviewCodec {
             rescues = json.getInt("rescues"),
             emergencyPauses = json.getInt("pauses"),
             bestStreak = json.getInt("streak"),
-            consistencyChangePoints = json.getInt("change"),
+            consistencyChangePoints = if (json.has("change")) json.getInt("change") else null,
             improved = json.optJSONObject("improved")?.let { GoalChange(it.getLong("id"), it.getString("name"), it.getInt("delta")) },
             worst = json.optJSONObject("worst")?.let { GoalFailureRate(it.getLong("id"), it.getString("name"), it.getInt("failed"), it.getInt("due")) },
             reasons = readPairs(json.getJSONArray("reasons")),

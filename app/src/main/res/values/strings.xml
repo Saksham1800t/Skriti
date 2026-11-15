@@ -685,8 +685,16 @@
     <string name="review_choices_help">Pause stops a goal for 7 days. Delete archives it. Modify opens its form.</string>
     <string name="review_up">completion, up %1$d points</string>
     <string name="review_down">completion, down %1$d points</string>
-    <string name="review_habits">%1$d habits</string>
+    <string name="review_first_week">first week, nothing to compare with</string>
+    <string name="review_streak">streak %1$d</string>
+    <plurals name="review_habits">
+        <item quantity="one">%1$d habit</item>
+        <item quantity="other">%1$d habits</item>
+    </plurals>
+    <plurals name="review_pauses">
+        <item quantity="one">%1$d emergency pause</item>
+        <item quantity="other">%1$d emergency pauses</item>
+    </plurals>
     <string name="review_failures_rescues">%1$d failures · %2$d rescue</string>
-    <string name="review_pauses_streak">%1$d emergency pauses · streak %2$d</string>
     <string name="settings_review_time">Weekly review time (Sunday)</string>
 </resources>

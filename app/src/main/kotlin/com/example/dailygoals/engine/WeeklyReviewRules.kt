@@ -38,7 +38,8 @@ data class WeeklyReview(
     val rescues: Int,
     val emergencyPauses: Int,
     val bestStreak: Int,
-    val consistencyChangePoints: Int,
+    /** Null when there was no earlier week to compare with. */
+    val consistencyChangePoints: Int?,
     val improved: GoalChange?,
     val worst: GoalFailureRate?,
     val reasons: List<Pair<String, Int>>,
@@ -87,7 +88,7 @@ object WeeklyReviewRules {
             rescues = rescuesUsed,
             emergencyPauses = emergencyPausesUsed,
             bestStreak = goals.maxOfOrNull { streak(it.thisWeek) } ?: 0,
-            consistencyChangePoints = completion - previousCompletion,
+            consistencyChangePoints = if (previousDue.isEmpty()) null else completion - previousCompletion,
             improved = improved,
             worst = worst,
             reasons = counts(failed.mapNotNull { it.reason }),
