@@ -36,6 +36,7 @@ class WarningRunner(
         val midnight = java.time.LocalDate.now(zone).plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
         wallpaper.refresh(repository.failedForWallpaper(), nowMillis, midnight)
         goalAlarms.schedule(repository.nextGoalAlarm())
+        repository.generateDueReview()?.let(notifier::postReview)
         val scheduled = repository.scheduledBatch()
         blockSync.apply(scheduled.blocks)
         val batch = repository.warningBatch()
@@ -55,6 +56,6 @@ class WarningRunner(
             repository.markWarningShown(warning, level)
         }
         val warningWait = Duration.between(batch.now, batch.plan.nextWakeup)
-        scheduler.scheduleIn(listOfNotNull(warningWait, scheduled.nextChangeIn).min())
+        scheduler.scheduleIn(listOfNotNull(warningWait, scheduled.nextChangeIn, repository.nextReviewWait()).min())
     }
 }

@@ -18,6 +18,7 @@ class MainActivity : ComponentActivity() {
         }
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        intent?.getStringExtra(EXTRA_OPEN_REVIEW)?.let { pendingReview.value = it }
         setContent {
             SkritiTheme {
                 AppRoot()
@@ -25,7 +26,17 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    private companion object {
-        const val SPLASH_FADE_MS = 200L
+    override fun onNewIntent(intent: android.content.Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pendingReview.value = intent.getStringExtra(EXTRA_OPEN_REVIEW)
+    }
+
+    companion object {
+        const val EXTRA_OPEN_REVIEW = "open_review"
+        private const val SPLASH_FADE_MS = 200L
+
+        /** The week of a review the user asked to open from the notification, until the app has shown it. */
+        val pendingReview = kotlinx.coroutines.flow.MutableStateFlow<String?>(null)
     }
 }
