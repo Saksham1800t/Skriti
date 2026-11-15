@@ -20,6 +20,10 @@ enum class GoalError {
     MINIMUM_INVALID,
     MINIMUM_ABOVE_TARGET,
     LABEL_TOO_LONG,
+    ALARM_NEEDS_WINDOW,
+    ALARM_NEEDS_TIME,
+    ALARM_OUTSIDE_WINDOW,
+    ALARM_NO_DAYS,
 }
 
 object GoalValidator {
