@@ -1,5 +1,6 @@
 package com.example.dailygoals.ui.goals
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -31,12 +32,13 @@ import com.example.dailygoals.R
 import com.example.dailygoals.SkritiApp
 import com.example.dailygoals.engine.BlockMessages
 import com.example.dailygoals.engine.GoalError
+import com.example.dailygoals.model.GoalType
 import com.example.dailygoals.ui.components.loadInstalledApps
 
 /** The apps a goal blocks, shared by scheduled blocking and punishment blocks. */
 @Composable
 internal fun BlockAppsField(form: GoalFormState, viewModel: GoalFormViewModel) {
-    if (!form.canScheduleBlock && !form.punishmentBlocks) return
+    if (!form.canScheduleBlock && !form.punishmentBlocks && form.type != GoalType.AVOID) return
     var picking by remember { mutableStateOf(false) }
     Field(R.string.form_block_apps) {
         if (form.canScheduleBlock) {
@@ -48,6 +50,16 @@ internal fun BlockAppsField(form: GoalFormState, viewModel: GoalFormViewModel) {
             if (form.scheduledBlock) {
                 CheckRow(form.autoKeep, R.string.scheduled_block_auto_keep, R.string.scheduled_block_auto_keep_help) { on ->
                     viewModel.edit { it.copy(autoKeep = on) }
+                }
+            }
+        }
+        if (form.type == GoalType.AVOID && !form.scheduledBlock) {
+            HelpText(R.string.watch_help)
+            CheckRow(form.watchOn, R.string.watch_hours_switch, R.string.watch_hours_help) { on -> viewModel.edit { it.copy(watchOn = on) } }
+            if (form.watchOn) {
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                    TimeBox(R.string.watch_from, R.string.watch_from, form.watchStart, Modifier.weight(1f)) { m -> viewModel.edit { it.copy(watchStart = m) } }
+                    TimeBox(R.string.watch_until, R.string.watch_until, form.watchEnd, Modifier.weight(1f)) { m -> viewModel.edit { it.copy(watchEnd = m) } }
                 }
             }
         }

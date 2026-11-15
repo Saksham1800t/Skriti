@@ -590,4 +590,15 @@
     <string name="error_alarm_needs_time">Choose the alarm time.</string>
     <string name="error_alarm_outside_window">The alarm time must be inside the time window.</string>
     <string name="error_alarm_no_days">Choose at least one day for the alarm.</string>
+
+    <string name="watch_help">Choose apps that tempt you. When one opens, Skriti asks whether you really used it. Only your answer counts.</string>
+    <string name="watch_hours_switch">Only watch during certain hours</string>
+    <string name="watch_hours_help">Without hours, the apps are watched all day.</string>
+    <string name="watch_from">Watch from</string>
+    <string name="watch_until">Watch until</string>
+    <string name="plan_when">When…</string>
+    <string name="plan_when_hint">I feel like opening Instagram while working</string>
+    <string name="plan_then">I will…</string>
+    <string name="plan_then_hint">take 3 breaths and go back to the task</string>
+    <string name="plan_help">Your plan is shown in the failure screen and in the final warning.</string>
 </resources>

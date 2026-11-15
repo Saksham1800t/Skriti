@@ -85,6 +85,11 @@ data class GoalFormState(
     val ifFail: String = "",
     val stake: String = "",
     val recoveryAllowed: Boolean = true,
+    val ifText: String = "",
+    val thenText: String = "",
+    val watchOn: Boolean = false,
+    val watchStart: Int = 9 * 60,
+    val watchEnd: Int = 18 * 60,
     val alarmOn: Boolean = false,
     val alarmMinute: Int? = null,
     val alarmDays: Set<DayOfWeek> = DayOfWeek.entries.toSet(),
@@ -101,7 +106,7 @@ data class GoalFormState(
     /** Scheduled blocking needs fixed days, so it is not offered for goals counted per week or month. */
     val canScheduleBlock: Boolean get() = type == GoalType.AVOID && frequency != Frequency.PER_WEEK && frequency != Frequency.PER_MONTH
     val punishmentBlocks: Boolean get() = PunishmentRules.blocksApps(intensity)
-    val blocksAnything: Boolean get() = punishmentBlocks || (scheduledBlock && canScheduleBlock)
+    val blocksAnything: Boolean get() = punishmentBlocks || (scheduledBlock && canScheduleBlock) || type == GoalType.AVOID
     val window: TimeWindow? get() = if (hasWindow) TimeWindow(startMinute, endMinute) else null
 
     /** A rule that needs a window is switched off while the goal has none. */
@@ -118,10 +123,11 @@ data class GoalFormState(
             allowTempAccess = allowTempAccess,
         )
 
-    val avoidance: GoalAvoidance get() = GoalAvoidance(blockPackages)
+    val avoidance: GoalAvoidance
+        get() = GoalAvoidance(blockPackages, watchStart.takeIf { watchOn && type == GoalType.AVOID }, watchEnd.takeIf { watchOn && type == GoalType.AVOID })
 
     val meaning: GoalMeaning
-        get() = GoalMeaning(why.trim().ifEmpty { null }, ifFail.trim().ifEmpty { null }, stake.trim().ifEmpty { null }, recoveryAllowed)
+        get() = GoalMeaning(why.trim().ifEmpty { null }, ifFail.trim().ifEmpty { null }, stake.trim().ifEmpty { null }, recoveryAllowed, ifText.trim().ifEmpty { null }, thenText.trim().ifEmpty { null })
 
     val reminder: GoalReminder
         get() = GoalReminder(warningMode, intervalMinutes, allDayMinute, strongAlert && warningMode != WarningMode.NONE)
@@ -210,6 +216,11 @@ class GoalFormViewModel(private val repository: GoalRepository, private val cloc
                     ifFail = goal.meaning.ifFail.orEmpty(),
                     stake = goal.meaning.stake.orEmpty(),
                     recoveryAllowed = goal.meaning.recoveryAllowed,
+                    ifText = goal.meaning.ifText.orEmpty(),
+                    thenText = goal.meaning.thenText.orEmpty(),
+                    watchOn = goal.avoidance.watchStart != null,
+                    watchStart = goal.avoidance.watchStart ?: current.watchStart,
+                    watchEnd = goal.avoidance.watchEnd ?: current.watchEnd,
                     alarmOn = goal.alarm.enabled,
                     alarmMinute = goal.alarm.minute,
                     alarmDays = goal.alarm.days,

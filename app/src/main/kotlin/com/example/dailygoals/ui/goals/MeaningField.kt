@@ -37,6 +37,21 @@ internal fun MeaningField(form: GoalFormState, viewModel: GoalFormViewModel) {
             modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
         )
         HelpText(R.string.meaning_stake_help)
+        OutlinedTextField(
+            value = form.ifText,
+            onValueChange = { text -> viewModel.edit { it.copy(ifText = text.take(GoalMeaning.MAX_LENGTH)) } },
+            label = { Text(stringResource(R.string.plan_when)) },
+            placeholder = { Text(stringResource(R.string.plan_when_hint)) },
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        )
+        OutlinedTextField(
+            value = form.thenText,
+            onValueChange = { text -> viewModel.edit { it.copy(thenText = text.take(GoalMeaning.MAX_LENGTH)) } },
+            label = { Text(stringResource(R.string.plan_then)) },
+            placeholder = { Text(stringResource(R.string.plan_then_hint)) },
+            modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
+        )
+        HelpText(R.string.plan_help)
         CheckRow(form.recoveryAllowed, R.string.meaning_recovery, R.string.meaning_recovery_help) { on ->
             viewModel.edit { it.copy(recoveryAllowed = on) }
         }
