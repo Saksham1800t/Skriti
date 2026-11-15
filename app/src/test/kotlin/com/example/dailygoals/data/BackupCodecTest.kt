@@ -54,6 +54,8 @@ class BackupCodecTest {
         measurement = MeasurementColumns(MeasureType.AMOUNT, "min", 120, 20, "Put on shoes"),
         reminder = ReminderColumns(WarningMode.REPEATING, warningIntervalMin = 15, warningMinute = 1260, strongAlert = true),
         avoidance = AvoidanceColumns("com.instagram.android\ncom.youtube"),
+        meaning = MeaningColumns(whyText = "Stronger engineer", ifFailText = "Choosing comfort", stakeText = "No social media tomorrow", recoveryAllowed = false),
+        alarm = AlarmColumns(alarmEnabled = true, alarmMinute = 315, alarmDays = 31, alarmSoundUri = "content://media/ring", alarmVibrate = false, snoozeMinutes = 10, snoozeLimit = 2, alarmDismissTicksGoal = true),
     )
     private val checkIn = CheckInEntity(3, 7, "2026-11-10", DayStatus.FAILED, FailReason.WINDOW_END, null, 555, amount = 15, lateMinutes = null, punishmentSkipped = true, failTag = "Tired", failNote = "Stayed up late", recovered = true, recoveredAt = 99)
     private val log = AmountLogEntity(9, 7, "2026-11-10", 15, 444)
