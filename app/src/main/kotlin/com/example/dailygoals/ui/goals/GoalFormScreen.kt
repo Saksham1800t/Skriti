@@ -162,6 +162,7 @@ fun GoalFormScreen(viewModel: GoalFormViewModel, onClose: () -> Unit, modifier: 
         WarningsField(form, viewModel)
         PunishmentField(form, viewModel)
         BlockAppsField(form, viewModel)
+        PauseField(form, viewModel)
 
         if (form.isEdit) {
             TextButton(onClick = { confirmDelete = true }, modifier = Modifier.padding(top = 8.dp)) {

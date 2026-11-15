@@ -9,6 +9,9 @@ import com.example.dailygoals.SkritiApp
 import com.example.dailygoals.data.GoalRepository
 import com.example.dailygoals.engine.Clock
 import com.example.dailygoals.engine.GoalError
+import com.example.dailygoals.engine.GoalPause
+import com.example.dailygoals.engine.HabitPauseLength
+import com.example.dailygoals.engine.PauseRules
 import com.example.dailygoals.engine.GoalValidator
 import com.example.dailygoals.engine.Intensity
 import com.example.dailygoals.engine.PunishmentRules
@@ -30,6 +33,7 @@ import java.time.LocalDate
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
@@ -71,6 +75,7 @@ data class GoalFormState(
     val pendingId: Long? = null,
     val pendingAt: Long? = null,
     val pendingArchive: Boolean = false,
+    val pause: GoalPause? = null,
     val errors: Set<GoalError> = emptySet(),
     val original: Goal? = null,
 ) {
@@ -141,6 +146,7 @@ class GoalFormViewModel(private val repository: GoalRepository, private val cloc
             val goal = repository.goal(goalId) ?: return@launch
             val attempts = repository.attemptsToday(goalId)
             val pending = repository.pendingFor(goalId)
+            val pauseNow = PauseRules.current(repository.pauses.first(), goalId, clock.now().toLocalDate())
             val window = goal.schedule.window
             mutableState.update { current ->
                 if (current.goalId != goalId) return@update current
@@ -179,6 +185,7 @@ class GoalFormViewModel(private val repository: GoalRepository, private val cloc
                     attemptsToday = attempts,
                     allowTempAccess = goal.discipline.allowTempAccess,
                     pendingId = pending?.id,
+                    pause = pauseNow,
                     pendingAt = pending?.appliesAt,
                     pendingArchive = pending != null && repository.isArchive(pending),
                     original = goal,
@@ -234,6 +241,26 @@ class GoalFormViewModel(private val repository: GoalRepository, private val cloc
             saving = false
             onSaved(appliesAt)
         }
+    }
+
+    fun pause(length: HabitPauseLength, chosenLastDay: LocalDate?) {
+        val goalId = mutableState.value.goalId
+        viewModelScope.launch {
+            if (repository.pauseGoal(goalId, length, chosenLastDay)) reloadPause(goalId)
+        }
+    }
+
+    fun resume() {
+        val goalId = mutableState.value.goalId
+        viewModelScope.launch {
+            repository.resumeGoal(goalId)
+            reloadPause(goalId)
+        }
+    }
+
+    private suspend fun reloadPause(goalId: Long) {
+        val current = PauseRules.current(repository.pauses.first(), goalId, clock.now().toLocalDate())
+        mutableState.update { it.copy(pause = current) }
     }
 
     fun cancelPending() {
