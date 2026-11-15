@@ -1,5 +1,6 @@
 package com.example.dailygoals.data
 
+import com.example.dailygoals.data.MeaningColumns
 import com.example.dailygoals.data.backup.Backup
 import com.example.dailygoals.data.backup.BackupCodec
 import com.example.dailygoals.data.backup.BackupException
@@ -54,7 +55,7 @@ class BackupCodecTest {
         reminder = ReminderColumns(WarningMode.REPEATING, warningIntervalMin = 15, warningMinute = 1260, strongAlert = true),
         avoidance = AvoidanceColumns("com.instagram.android\ncom.youtube"),
     )
-    private val checkIn = CheckInEntity(3, 7, "2026-11-10", DayStatus.FAILED, FailReason.WINDOW_END, null, 555, amount = 15, lateMinutes = null, punishmentSkipped = true)
+    private val checkIn = CheckInEntity(3, 7, "2026-11-10", DayStatus.FAILED, FailReason.WINDOW_END, null, 555, amount = 15, lateMinutes = null, punishmentSkipped = true, failTag = "Tired", failNote = "Stayed up late", recovered = true, recoveredAt = 99)
     private val log = AmountLogEntity(9, 7, "2026-11-10", 15, 444)
     private val period = PeriodResultEntity(1, 7, "2026-11-09", "2026-11-15", 4, 4, 7, 0, 0, 2, PeriodStatus.FAILED, "2026-11-13", 777)
     private val backup = Backup(AppDatabase.VERSION,listOf(goal), listOf(checkIn), listOf(log), listOf(period), dayEndMinute = 1380, minimumWeightPercent = 70)

@@ -3,6 +3,7 @@ package com.example.dailygoals.data.backup
 import com.example.dailygoals.data.AmountLogEntity
 import com.example.dailygoals.data.AppDatabase
 import com.example.dailygoals.data.AvoidanceColumns
+import com.example.dailygoals.data.MeaningColumns
 import com.example.dailygoals.data.CheckInEntity
 import com.example.dailygoals.data.DisciplineColumns
 import com.example.dailygoals.data.GoalEntity
@@ -134,6 +135,10 @@ object BackupCodec {
         put("autoKeepAtWindowEnd", goal.discipline.autoKeepAtWindowEnd)
         put("allowTempAccess", goal.discipline.allowTempAccess)
         put("temptingPackages", goal.avoidance.temptingPackages)
+        put("whyText", goal.meaning.whyText ?: JSONObject.NULL)
+        put("ifFailText", goal.meaning.ifFailText ?: JSONObject.NULL)
+        put("stakeText", goal.meaning.stakeText ?: JSONObject.NULL)
+        put("recoveryAllowed", goal.meaning.recoveryAllowed)
         put("measureType", goal.measurement.measureType.name)
         put("unit", goal.measurement.unit)
         put("targetAmount", goal.measurement.targetAmount)
@@ -189,6 +194,12 @@ object BackupCodec {
             strongAlert = json.optBoolean("strongAlert", false),
         ),
         avoidance = AvoidanceColumns(json.optString("temptingPackages", "")),
+        meaning = MeaningColumns(
+            whyText = json.stringOrNull("whyText"),
+            ifFailText = json.stringOrNull("ifFailText"),
+            stakeText = json.stringOrNull("stakeText"),
+            recoveryAllowed = json.optBoolean("recoveryAllowed", true),
+        ),
     )
 
     private fun checkInJson(row: CheckInEntity) = JSONObject().apply {
@@ -202,6 +213,10 @@ object BackupCodec {
         put("amount", row.amount)
         put("lateMinutes", row.lateMinutes ?: JSONObject.NULL)
         put("punishmentSkipped", row.punishmentSkipped)
+        put("failTag", row.failTag ?: JSONObject.NULL)
+        put("failNote", row.failNote ?: JSONObject.NULL)
+        put("recovered", row.recovered)
+        put("recoveredAt", row.recoveredAt ?: JSONObject.NULL)
     }
 
     private fun checkInFrom(json: JSONObject) = CheckInEntity(
@@ -215,6 +230,10 @@ object BackupCodec {
         amount = json.optInt("amount", 0),
         lateMinutes = json.intOrNull("lateMinutes"),
         punishmentSkipped = json.optBoolean("punishmentSkipped", false),
+        failTag = json.stringOrNull("failTag"),
+        failNote = json.stringOrNull("failNote"),
+        recovered = json.optBoolean("recovered", false),
+        recoveredAt = if (json.isNull("recoveredAt") || !json.has("recoveredAt")) null else json.getLong("recoveredAt"),
     )
 
     private fun logJson(log: AmountLogEntity) = JSONObject().apply {

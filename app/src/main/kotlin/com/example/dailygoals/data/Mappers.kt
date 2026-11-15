@@ -4,6 +4,7 @@ import com.example.dailygoals.model.CheckIn
 import com.example.dailygoals.model.Goal
 import com.example.dailygoals.model.GoalAvoidance
 import com.example.dailygoals.model.GoalDiscipline
+import com.example.dailygoals.model.GoalMeaning
 import com.example.dailygoals.model.GoalMeasurement
 import com.example.dailygoals.model.GoalReminder
 import com.example.dailygoals.model.GoalSchedule
@@ -62,6 +63,7 @@ fun GoalEntity.toModel(): Goal = Goal(
         strongAlert = reminder.strongAlert,
     ),
     avoidance = GoalAvoidance(avoidance.temptingPackages.lines().filter { it.isNotBlank() }.toSet()),
+    meaning = GoalMeaning(why = meaning.whyText, ifFail = meaning.ifFailText, stake = meaning.stakeText, recoveryAllowed = meaning.recoveryAllowed),
 )
 
 fun Goal.toEntity(): GoalEntity = GoalEntity(
@@ -108,6 +110,12 @@ fun Goal.toEntity(): GoalEntity = GoalEntity(
         strongAlert = reminder.strongAlert,
     ),
     avoidance = AvoidanceColumns(avoidance.temptingPackages.sorted().joinToString("\n")),
+    meaning = MeaningColumns(
+        whyText = meaning.why?.trim()?.ifEmpty { null },
+        ifFailText = meaning.ifFail?.trim()?.ifEmpty { null },
+        stakeText = meaning.stake?.trim()?.ifEmpty { null },
+        recoveryAllowed = meaning.recoveryAllowed,
+    ),
 )
 
 fun CheckInEntity.toModel(): CheckIn = CheckIn(
@@ -118,4 +126,7 @@ fun CheckInEntity.toModel(): CheckIn = CheckIn(
     amount = amount,
     lateMinutes = lateMinutes,
     punishmentSkipped = punishmentSkipped,
+    failTag = failTag,
+    failNote = failNote,
+    recovered = recovered,
 )
