@@ -44,6 +44,7 @@ import com.example.dailygoals.engine.RescueCheck
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.material3.TextButton
 import com.example.dailygoals.R
+import com.example.dailygoals.engine.StakeStatus
 import com.example.dailygoals.SkritiApp
 import com.example.dailygoals.engine.CheckAction
 import com.example.dailygoals.engine.DayItem
@@ -87,10 +88,33 @@ fun DayScreen(viewModel: DayViewModel, onAddGoal: () -> Unit, onOpenPermissions:
         it.status == DayStatus.FAILED && it.failReason != FailReason.MANUAL && it.failReason != null && it.goal.id !in dismissedIds
     }
 
+    val seen by viewModel.seenFailures.collectAsStateWithLifecycle()
+    val stakes by viewModel.stakes.collectAsStateWithLifecycle()
+    val dueStakes = stakes.filter { it.status == StakeStatus.PENDING.name && !LocalDate.parse(it.dueDate).isAfter(state.today) }
+    val nameOf: (Long) -> String = { id -> state.plan.items.firstOrNull { it.goal.id == id }?.goal?.name.orEmpty() }
+    val askNote = (LocalContext.current.applicationContext as SkritiApp).settings.settings.collectAsStateWithLifecycle().value.askFailNote
+    val unseen = if (isToday) plan.items.firstOrNull { it.status == DayStatus.FAILED && "${it.goal.id}:${plan.date}" !in seen } else null
+    unseen?.let { item ->
+        FailureDialog(
+            item = item,
+            date = plan.date,
+            today = state.today,
+            askNote = askNote,
+            onSaveNote = { tag, note -> viewModel.saveNote(item.goal.id, plan.date, tag, note) },
+            onRecover = { viewModel.recover(item.goal.id, plan.date) },
+            onClose = { viewModel.failureSeen(item.goal.id, plan.date) },
+        )
+    }
+
     LazyColumn(modifier, contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp)) {
         item(key = "header") {
             DayHeader(plan.date, state.today, onOpenCalendar = { calendarOpen = true }, onToday = { viewModel.select(state.today) })
             WeekStrip(state.week, state.weekSummaries, plan.date, state.today, viewModel::select)
+        }
+        if (isToday) {
+            items(dueStakes, key = { "stake-${it.id}" }) { stake ->
+                StakeBanner(stake, goalName = nameOf(stake.goalId), onDone = { viewModel.completeStake(stake.id) }, onDismiss = { viewModel.dismissStake(stake.id) })
+            }
         }
         if (state.rescued) {
             item(key = "rescued") {

@@ -23,7 +23,8 @@ class FailureNotifier(private val context: Context) {
     @SuppressLint("MissingPermission")
     fun post(goal: Goal, date: LocalDate, plan: PunishmentPlan) {
         if (!manager.areNotificationsEnabled()) return
-        val text = text(plan)
+        val stake = goal.meaning.stake?.takeIf { it.isNotBlank() }
+        val text = text(plan) + (stake?.let { " " + context.getString(R.string.failure_stake, it) } ?: "")
         val builder = NotificationCompat.Builder(context, NotificationChannels.WARNINGS)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle(context.getString(R.string.failure_title, goal.name))

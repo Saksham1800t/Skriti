@@ -16,6 +16,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Switch
+import androidx.compose.ui.Alignment
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -117,6 +119,13 @@ fun SettingsScreen(
             Text(stringResource(R.string.settings_day_end_help), fontSize = 12.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             TimeBox(R.string.settings_day_end_label, R.string.settings_day_end, settings.dayEndMinute, Modifier.padding(top = 8.dp)) {
                 viewModel.setDayEnd(it)
+            }
+        }
+
+        Group(R.string.settings_failures) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.settings_ask_note), fontSize = 15.sp, modifier = Modifier.weight(1f))
+                Switch(checked = settings.askFailNote, onCheckedChange = viewModel::setAskFailNote)
             }
         }
 

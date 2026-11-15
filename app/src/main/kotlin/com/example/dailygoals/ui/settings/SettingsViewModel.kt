@@ -56,6 +56,8 @@ class SettingsViewModel(
         Result.failure(error)
     }
 
+    fun setAskFailNote(on: Boolean) = settingsStore.update { it.copy(askFailNote = on) }
+
     fun restore(parsed: Backup, mode: RestoreMode, onDone: () -> Unit) {
         viewModelScope.launch {
             backup.restore(parsed, mode)

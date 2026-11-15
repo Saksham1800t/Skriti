@@ -479,4 +479,33 @@
         <item quantity="one">%1$d goal is paused</item>
         <item quantity="other">%1$d goals are paused</item>
     </plurals>
+
+    <string name="form_meaning">Why it matters</string>
+    <string name="meaning_why">Why does this goal matter?</string>
+    <string name="meaning_why_hint">I want to become a stronger backend engineer</string>
+    <string name="meaning_if_fail">If I fail, I am choosing…</string>
+    <string name="meaning_if_fail_hint">Short-term comfort over my long-term goal</string>
+    <string name="meaning_stake">Penalty if I fail (optional)</string>
+    <string name="meaning_stake_hint">No social media tomorrow morning</string>
+    <string name="meaning_stake_help">Shown on the next day with a tick for doing it. It needs a punishment other than None.</string>
+    <string name="meaning_recovery">Allow recovery after a failure</string>
+    <string name="meaning_recovery_help">Lets you still do the minimum version on the same day. Off by default for avoid goals.</string>
+    <string name="failure_screen_title">You failed %1$s</string>
+    <string name="failure_screen_why">Why this matters</string>
+    <string name="failure_screen_if_fail">If I fail, I am choosing</string>
+    <string name="failure_screen_what_happened">What happened?</string>
+    <string name="failure_screen_note">A short note (optional)</string>
+    <string name="failure_screen_recovery">There is still a way back today</string>
+    <string name="failure_screen_do_minimum">Do minimum version now</string>
+    <string name="failure_screen_log_minimum">Log at least %1$d %2$s now</string>
+    <string name="failure_screen_accept">Accept failure</string>
+    <string name="failure_screen_save">Save</string>
+    <string name="failure_screen_skip">Skip</string>
+    <string name="stake_title">Penalty from %1$s</string>
+    <string name="stake_unknown_goal">a goal</string>
+    <string name="stake_done">Done</string>
+    <string name="stake_dismiss">Let it go</string>
+    <string name="settings_ask_note">Ask what happened when I fail a goal</string>
+    <string name="settings_failures">Failures</string>
+    <string name="failure_stake">Tomorrow: %1$s</string>
 </resources>
