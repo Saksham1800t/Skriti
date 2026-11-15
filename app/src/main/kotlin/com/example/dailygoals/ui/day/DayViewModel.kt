@@ -11,6 +11,10 @@ import com.example.dailygoals.data.SettingsStore
 import com.example.dailygoals.engine.CheckAction
 import com.example.dailygoals.engine.Clock
 import com.example.dailygoals.engine.Consistency
+import com.example.dailygoals.engine.NeutralDays
+import com.example.dailygoals.engine.PauseRules
+import com.example.dailygoals.engine.RescueCheck
+import com.example.dailygoals.engine.RescueRules
 import com.example.dailygoals.engine.ConsistencyStats
 import com.example.dailygoals.engine.DayPlan
 import com.example.dailygoals.engine.DayPlanner
@@ -42,6 +46,10 @@ data class DayUiState(
     val stats: Map<Long, ConsistencyStats>,
     val timers: Map<Long, Long>,
     val minimumWeightPercent: Int,
+    val rescued: Boolean = false,
+    val rescueCheck: RescueCheck = RescueCheck.TOO_OLD,
+    val rescueUsedOn: LocalDate? = null,
+    val pausedCount: Int = 0,
 ) {
     val today: LocalDate get() = now.toLocalDate()
 }
@@ -63,27 +71,36 @@ class DayViewModel(
         }
     }.distinctUntilChanged()
 
+    private val neutralFlow = combine(repository.pauses, repository.rescueDays) { pauses, rescueDays -> pauses to rescueDays }
+
     private val selection: Flow<Pair<LocalDateTime, LocalDate>> =
         combine(now, pickedDate) { time, picked -> time to (picked ?: time.toLocalDate()) }
 
     val state: StateFlow<DayUiState?> = selection
         .flatMapLatest { (time, date) ->
             val week = Weeks.weekOf(date)
-            combine(repository.goals, repository.checkIns, repository.timers, settings.settings) { goals, checkIns, timers, current ->
+            combine(repository.goals, repository.checkIns, repository.timers, settings.settings, neutralFlow) { goals, checkIns, timers, current, (pauses, rescueDays) ->
                 val byGoal = checkIns.groupBy { it.goalId }
-                val neutral = repository.neutralDates()
+                val neutral = repository.neutralDates() + rescueDays
+                val visible = if (date in rescueDays) goals.filter { goal -> byGoal[goal.id].orEmpty().any { it.date == date } } else goals
+                val shown = visible.filterNot { goal -> PauseRules.isPaused(pauses, goal.id, date) && byGoal[goal.id].orEmpty().none { it.date == date } }
                 DayUiState(
                     now = time,
-                    plan = DayPlanner.plan(goals, checkIns, date, time),
+                    plan = DayPlanner.plan(shown, checkIns, date, time),
                     week = week,
                     weekSummaries = DayPlanner.summaries(goals, checkIns, week),
                     hasActiveGoals = goals.any { it.state == GoalState.ACTIVE },
                     stats = goals.filter { it.state == GoalState.ACTIVE }.associate { goal ->
                         val statuses = byGoal[goal.id].orEmpty().associate { it.date to it.status }
-                        goal.id to Consistency.forGoal(goal, statuses, time.toLocalDate(), neutral)
+                        val goalNeutral = NeutralDays.forGoal(goal.id, neutral, emptySet(), pauses, goal.schedule.startDate, time.toLocalDate())
+                        goal.id to Consistency.forGoal(goal, statuses, time.toLocalDate(), goalNeutral)
                     },
                     timers = timers,
                     minimumWeightPercent = current.minimumWeightPercent,
+                    rescued = date in rescueDays,
+                    rescueCheck = RescueRules.check(date, time.toLocalDate(), rescueDays),
+                    rescueUsedOn = RescueRules.usedThisWeek(time.toLocalDate(), rescueDays),
+                    pausedCount = goals.count { it.state == GoalState.ACTIVE && PauseRules.isPaused(pauses, it.id, date) },
                 )
             }
         }
@@ -100,6 +117,10 @@ class DayViewModel(
 
     fun select(date: LocalDate) {
         pickedDate.value = date.takeIf { it != clock.now().toLocalDate() }
+    }
+
+    fun useRescueDay(date: LocalDate) {
+        viewModelScope.launch { repository.useRescueDay(date) }
     }
 
     fun act(goalId: Long, date: LocalDate, action: CheckAction) {

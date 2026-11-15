@@ -458,4 +458,25 @@
     <string name="sentence_monthly">on the %1$s %2$s of every month</string>
 
     <string name="pause_resumed_notice">The pause is over. This goal counts again from today.</string>
+
+    <string name="form_pause">Pause</string>
+    <string name="habit_pause_help">Pause this goal while you are away or unwell. It makes no warnings, failures or new blocks, and the paused days do not count against you.</string>
+    <string name="pause_button">Pause this goal</string>
+    <string name="pause_3_days">3 days</string>
+    <string name="pause_7_days">7 days</string>
+    <string name="pause_14_days">14 days</string>
+    <string name="pause_until_date">Until a date</string>
+    <string name="pause_until_resumed_option">Until I resume it</string>
+    <string name="pause_until">Paused until %1$s</string>
+    <string name="pause_until_resumed">Paused until you resume it</string>
+    <string name="pause_running_help">Blocks this goal already caused stay until they end. The emergency pause lifts them.</string>
+    <string name="pause_resume">Resume now</string>
+    <string name="rescue_active">Rescue day: nothing counts for or against you on this date.</string>
+    <string name="rescue_use">Use rescue day</string>
+    <string name="rescue_confirm">This date will not count for or against any goal, and today\'s failures are cleared. You get one rescue day per week.</string>
+    <string name="rescue_used_on">Rescue day used on %1$s</string>
+    <plurals name="day_paused_count">
+        <item quantity="one">%1$d goal is paused</item>
+        <item quantity="other">%1$d goals are paused</item>
+    </plurals>
 </resources>

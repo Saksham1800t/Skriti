@@ -30,6 +30,11 @@ import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.dailygoals.SkritiApp
+import com.example.dailygoals.engine.Clock
+import com.example.dailygoals.engine.GoalPause
+import com.example.dailygoals.engine.PauseRules
+import java.time.LocalDate
+import androidx.compose.ui.graphics.Color
 import com.example.dailygoals.R
 import com.example.dailygoals.data.GoalRepository
 import com.example.dailygoals.model.Goal
@@ -45,7 +50,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-class GoalsViewModel(repository: GoalRepository) : ViewModel() {
+class GoalsViewModel(repository: GoalRepository, private val clock: Clock) : ViewModel() {
+    val pauses: StateFlow<List<GoalPause>> = repository.pauses
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), emptyList())
+
+    fun today(): LocalDate = clock.now().toLocalDate()
+
     val goals: StateFlow<List<Goal>?> = repository.goals
         .map { goals -> goals.filter { it.state == GoalState.ACTIVE } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), null)
@@ -54,7 +64,10 @@ class GoalsViewModel(repository: GoalRepository) : ViewModel() {
         private const val STOP_TIMEOUT_MILLIS = 5000L
 
         val Factory = viewModelFactory {
-            initializer { GoalsViewModel((this[APPLICATION_KEY] as SkritiApp).repository) }
+            initializer {
+                val app = this[APPLICATION_KEY] as SkritiApp
+                GoalsViewModel(app.repository, app.clock)
+            }
         }
     }
 }
@@ -62,6 +75,7 @@ class GoalsViewModel(repository: GoalRepository) : ViewModel() {
 @Composable
 fun GoalsScreen(viewModel: GoalsViewModel, onAdd: () -> Unit, onEdit: (Long) -> Unit, modifier: Modifier = Modifier) {
     val goals by viewModel.goals.collectAsStateWithLifecycle()
+    val pauses by viewModel.pauses.collectAsStateWithLifecycle()
     val scheme = MaterialTheme.colorScheme
     LazyColumn(modifier, contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 24.dp)) {
         item(key = "header") {
@@ -82,13 +96,13 @@ fun GoalsScreen(viewModel: GoalsViewModel, onAdd: () -> Unit, onEdit: (Long) -> 
             }
         }
         items(list.orEmpty(), key = { it.id }) { goal ->
-            GoalRow(goal, onClick = { onEdit(goal.id) })
+            GoalRow(goal, PauseRules.current(pauses, goal.id, viewModel.today()), onClick = { onEdit(goal.id) })
         }
     }
 }
 
 @Composable
-private fun GoalRow(goal: Goal, onClick: () -> Unit) {
+private fun GoalRow(goal: Goal, pause: GoalPause?, onClick: () -> Unit) {
     val scheme = MaterialTheme.colorScheme
     val shape = RoundedCornerShape(22.dp)
     val days = schedulePhrase(goal.schedule).replaceFirstChar(Char::uppercase)
@@ -105,7 +119,16 @@ private fun GoalRow(goal: Goal, onClick: () -> Unit) {
             .padding(horizontal = 16.dp, vertical = 14.dp),
     ) {
         Column(Modifier.weight(1f)) {
-            Text(goal.name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+            Text(goal.name, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = if (pause != null) scheme.onSurfaceVariant else Color.Unspecified)
+            if (pause != null) {
+                Text(
+                    text = pause.resumesOn?.let { stringResource(R.string.pause_until, it.format(java.time.format.DateTimeFormatter.ofPattern("d MMM"))) }
+                        ?: stringResource(R.string.pause_until_resumed),
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = scheme.primary,
+                )
+            }
             Text(
                 text = if (goal.type == GoalType.AVOID) {
                     stringResource(R.string.goal_avoid_suffix, "$days · $time")

@@ -40,6 +40,9 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.dailygoals.engine.RescueCheck
+import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.material3.TextButton
 import com.example.dailygoals.R
 import com.example.dailygoals.SkritiApp
 import com.example.dailygoals.engine.CheckAction
@@ -89,6 +92,17 @@ fun DayScreen(viewModel: DayViewModel, onAddGoal: () -> Unit, onOpenPermissions:
             DayHeader(plan.date, state.today, onOpenCalendar = { calendarOpen = true }, onToday = { viewModel.select(state.today) })
             WeekStrip(state.week, state.weekSummaries, plan.date, state.today, viewModel::select)
         }
+        if (state.rescued) {
+            item(key = "rescued") {
+                Text(
+                    text = stringResource(R.string.rescue_active),
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
+                )
+            }
+        }
         if (isToday && warningsBlocked && !hintDismissed && plan.items.any { it.goal.reminder.mode != WarningMode.NONE }) {
             item(key = "warning-hint") { WarningHint(onOpenPermissions, onDismiss = { hintDismissed = true }) }
         }
@@ -129,6 +143,7 @@ fun DayScreen(viewModel: DayViewModel, onAddGoal: () -> Unit, onOpenPermissions:
                     )
                 }
             }
+            item(key = "rescue") { RescueRow(state, plan.date, viewModel::useRescueDay) }
             item(key = "hint") {
                 Text(
                     text = stringResource(if (plan.editable) R.string.day_hold_hint else R.string.day_view_only),
@@ -354,5 +369,47 @@ private fun EmptyDay(hasActiveGoals: Boolean, onAddGoal: () -> Unit) {
             Spacer(Modifier.height(20.dp))
             Box { AccentButton(stringResource(R.string.day_add_first_goal), onAddGoal) }
         }
+    }
+}
+
+@Composable
+private fun RescueRow(state: DayUiState, date: LocalDate, onUse: (LocalDate) -> Unit) {
+    val used = state.rescueUsedOn
+    var confirm by rememberSaveable { mutableStateOf(false) }
+    val muted = MaterialTheme.colorScheme.onSurfaceVariant
+    if (state.pausedCount > 0) {
+        Text(
+            pluralStringResource(R.plurals.day_paused_count, state.pausedCount, state.pausedCount),
+            fontSize = 12.5.sp,
+            color = muted,
+            textAlign = TextAlign.Center,
+            modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+        )
+    }
+    when {
+        state.rescueCheck == RescueCheck.OK ->
+            TextButton(onClick = { confirm = true }, modifier = Modifier.fillMaxWidth()) { Text(stringResource(R.string.rescue_use)) }
+        used != null ->
+            Text(
+                stringResource(R.string.rescue_used_on, used.format(java.time.format.DateTimeFormatter.ofPattern("EEE d MMM"))),
+                fontSize = 12.5.sp,
+                color = muted,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.fillMaxWidth().padding(top = 4.dp),
+            )
+    }
+    if (confirm) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = { confirm = false },
+            title = { Text(stringResource(R.string.rescue_use)) },
+            text = { Text(stringResource(R.string.rescue_confirm)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirm = false
+                    onUse(date)
+                }) { Text(stringResource(R.string.rescue_use)) }
+            },
+            dismissButton = { TextButton(onClick = { confirm = false }) { Text(stringResource(R.string.form_cancel)) } },
+        )
     }
 }
