@@ -16,4 +16,5 @@ data class Goal(
     val reminder: GoalReminder = GoalReminder(),
     val avoidance: GoalAvoidance = GoalAvoidance(),
     val meaning: GoalMeaning = GoalMeaning(),
+    val alarm: GoalAlarm = GoalAlarm(),
 )
