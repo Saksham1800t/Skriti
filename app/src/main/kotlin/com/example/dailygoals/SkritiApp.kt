@@ -14,6 +14,7 @@ import com.example.dailygoals.data.backup.BackupService
 import com.example.dailygoals.engine.Clock
 import com.example.dailygoals.notify.AlarmScheduler
 import com.example.dailygoals.wallpaper.WallpaperController
+import com.example.dailygoals.widget.WidgetUpdater
 import com.example.dailygoals.wallpaper.WallpaperStore
 import com.example.dailygoals.notify.FailureNotifier
 import com.example.dailygoals.notify.NotificationChannels
@@ -72,7 +73,10 @@ class SkritiApp : Application() {
         scope.launch {
             combine(repository.changes, settings.settings) { _, _ -> }
                 .debounce(CHANGE_DEBOUNCE_MILLIS)
-                .collect { warnings.run() }
+                .collect {
+                    warnings.run()
+                    WidgetUpdater.update(this@SkritiApp)
+                }
         }
     }
 

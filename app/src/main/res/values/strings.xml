@@ -554,4 +554,14 @@
     <string name="wallpaper_restore_midnight">At midnight</string>
     <string name="wallpaper_restore_block">When the longest block ends</string>
     <string name="wallpaper_lock">Also change the lock screen</string>
+
+    <string name="widget_description">Today\'s ring and the goals due, with a tick to tap.</string>
+    <string name="widget_label_4x2">Skriti today</string>
+    <string name="widget_label_2x2">Skriti ring</string>
+    <string name="widget_tick_description">Mark done</string>
+    <string name="widget_ring_description">Goals kept today</string>
+    <string name="widget_empty">Nothing is due today.</string>
+    <string name="widget_more">+%1$d more</string>
+    <string name="widget_summary">%1$d of %2$d kept</string>
+    <string name="widget_next">Next: %1$s</string>
 </resources>

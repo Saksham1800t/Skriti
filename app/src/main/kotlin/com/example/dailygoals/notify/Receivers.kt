@@ -6,6 +6,7 @@ import android.content.Intent
 import com.example.dailygoals.SkritiApp
 import com.example.dailygoals.engine.CheckAction
 import com.example.dailygoals.model.DayStatus
+import com.example.dailygoals.widget.WidgetUpdater
 import java.time.LocalDate
 import kotlinx.coroutines.launch
 
@@ -26,14 +27,20 @@ private fun BroadcastReceiver.goAsyncWork(context: Context, work: suspend (Skrit
 class AlarmReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != AlarmScheduler.ACTION_WAKE_UP) return
-        goAsyncWork(context) { it.warnings.run() }
+        goAsyncWork(context) {
+            it.warnings.run()
+            WidgetUpdater.update(context)
+        }
     }
 }
 
 /** Rebuilds the alarm after a reboot, an app update, a clock or time zone change, or a permission change. */
 class SystemEventReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
-        goAsyncWork(context) { it.warnings.run() }
+        goAsyncWork(context) {
+            it.warnings.run()
+            WidgetUpdater.update(context)
+        }
     }
 }
 
