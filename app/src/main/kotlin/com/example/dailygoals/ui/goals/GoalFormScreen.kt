@@ -162,6 +162,7 @@ fun GoalFormScreen(viewModel: GoalFormViewModel, onClose: () -> Unit, modifier: 
         WarningsField(form, viewModel)
         PunishmentField(form, viewModel)
         BlockAppsField(form, viewModel)
+        AlarmField(form, viewModel)
         MeaningField(form, viewModel)
         PauseField(form, viewModel)
 

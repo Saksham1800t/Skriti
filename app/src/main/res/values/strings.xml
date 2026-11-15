@@ -571,4 +571,22 @@
     <string name="alarm_dismiss">Dismiss</string>
     <string name="channel_alarm">Goal alarms</string>
     <string name="channel_alarm_description">The ringing alarm of a goal that has one switched on.</string>
+
+    <string name="form_alarm">Alarm</string>
+    <string name="alarm_switch">Ring an alarm</string>
+    <string name="alarm_switch_help">A real alarm at a time you choose inside the window. It rings over the lock screen and in silent mode.</string>
+    <string name="alarm_time">Alarm time</string>
+    <string name="alarm_time_pick">Alarm time</string>
+    <string name="alarm_time_unset">Choose a time inside the window. The alarm cannot be saved without one.</string>
+    <string name="alarm_sound">Sound: %1$s</string>
+    <string name="alarm_sound_default">Default alarm</string>
+    <string name="alarm_vibrate">Vibrate</string>
+    <string name="alarm_vibrate_help">The phone vibrates while the alarm rings.</string>
+    <string name="alarm_snooze_length">Snooze for</string>
+    <string name="alarm_snooze_limit">Most snoozes</string>
+    <string name="alarm_dismiss_ticks">Dismissing also ticks the goal</string>
+    <string name="alarm_dismiss_ticks_help">When off, the goal stays open and the warnings keep going until you tick it.</string>
+    <string name="error_alarm_needs_time">Choose the alarm time.</string>
+    <string name="error_alarm_outside_window">The alarm time must be inside the time window.</string>
+    <string name="error_alarm_no_days">Choose at least one day for the alarm.</string>
 </resources>

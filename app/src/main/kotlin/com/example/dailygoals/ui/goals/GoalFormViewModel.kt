@@ -8,6 +8,8 @@ import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.dailygoals.SkritiApp
 import com.example.dailygoals.data.GoalRepository
 import com.example.dailygoals.engine.Clock
+import com.example.dailygoals.engine.AlarmError
+import com.example.dailygoals.engine.AlarmRules
 import com.example.dailygoals.engine.GoalError
 import com.example.dailygoals.engine.GoalPause
 import com.example.dailygoals.engine.HabitPauseLength
@@ -19,6 +21,7 @@ import com.example.dailygoals.engine.PunishmentRules
 import com.example.dailygoals.model.Frequency
 import com.example.dailygoals.model.Goal
 import com.example.dailygoals.model.GoalAvoidance
+import com.example.dailygoals.model.GoalAlarm
 import com.example.dailygoals.model.GoalDiscipline
 import com.example.dailygoals.model.GoalMeaning
 import com.example.dailygoals.model.GoalMeasurement
@@ -82,6 +85,14 @@ data class GoalFormState(
     val ifFail: String = "",
     val stake: String = "",
     val recoveryAllowed: Boolean = true,
+    val alarmOn: Boolean = false,
+    val alarmMinute: Int? = null,
+    val alarmDays: Set<DayOfWeek> = DayOfWeek.entries.toSet(),
+    val alarmSound: String? = null,
+    val alarmVibrate: Boolean = true,
+    val snoozeMinutes: Int = GoalAlarm.DEFAULT_SNOOZE_MINUTES,
+    val snoozeLimit: Int = GoalAlarm.DEFAULT_SNOOZE_LIMIT,
+    val alarmDismissTicks: Boolean = false,
     val errors: Set<GoalError> = emptySet(),
     val original: Goal? = null,
 ) {
@@ -199,6 +210,14 @@ class GoalFormViewModel(private val repository: GoalRepository, private val cloc
                     ifFail = goal.meaning.ifFail.orEmpty(),
                     stake = goal.meaning.stake.orEmpty(),
                     recoveryAllowed = goal.meaning.recoveryAllowed,
+                    alarmOn = goal.alarm.enabled,
+                    alarmMinute = goal.alarm.minute,
+                    alarmDays = goal.alarm.days,
+                    alarmSound = goal.alarm.soundUri,
+                    alarmVibrate = goal.alarm.vibrate,
+                    snoozeMinutes = goal.alarm.snoozeMinutes,
+                    snoozeLimit = goal.alarm.snoozeLimit,
+                    alarmDismissTicks = goal.alarm.dismissTicksGoal,
                     pendingAt = pending?.appliesAt,
                     pendingArchive = pending != null && repository.isArchive(pending),
                     original = goal,
@@ -249,6 +268,7 @@ class GoalFormViewModel(private val repository: GoalRepository, private val cloc
             reminder = form.reminder,
             avoidance = form.avoidance,
             meaning = form.meaning,
+            alarm = alarmFromForm(form),
         )
         viewModelScope.launch {
             val appliesAt = repository.save(goal)
@@ -298,7 +318,15 @@ class GoalFormViewModel(private val repository: GoalRepository, private val cloc
         return GoalValidator.validateName(form.name) +
             GoalValidator.validateSchedule(schedule) +
             GoalValidator.validateDiscipline(form.discipline, schedule) +
-            GoalValidator.validateMeasurement(form.measurement)
+            GoalValidator.validateMeasurement(form.measurement) +
+            AlarmRules.validate(alarmFromForm(form), schedule.window).map {
+                when (it) {
+                    AlarmError.NEEDS_WINDOW -> GoalError.ALARM_NEEDS_WINDOW
+                    AlarmError.NEEDS_TIME -> GoalError.ALARM_NEEDS_TIME
+                    AlarmError.OUTSIDE_WINDOW -> GoalError.ALARM_OUTSIDE_WINDOW
+                    AlarmError.NO_DAYS -> GoalError.ALARM_NO_DAYS
+                }
+            }
     }
 
     companion object {
