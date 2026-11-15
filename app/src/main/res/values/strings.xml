@@ -564,4 +564,11 @@
     <string name="widget_more">+%1$d more</string>
     <string name="widget_summary">%1$d of %2$d kept</string>
     <string name="widget_next">Next: %1$s</string>
+
+    <string name="alarm_title">Wake-up alarm</string>
+    <string name="alarm_text">Tap to open.</string>
+    <string name="alarm_snooze">Snooze</string>
+    <string name="alarm_dismiss">Dismiss</string>
+    <string name="channel_alarm">Goal alarms</string>
+    <string name="channel_alarm_description">The ringing alarm of a goal that has one switched on.</string>
 </resources>

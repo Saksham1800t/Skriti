@@ -2,6 +2,8 @@ package com.example.dailygoals
 
 import android.app.Application
 import android.content.pm.ApplicationInfo
+import com.example.dailygoals.alarm.AlarmStore
+import com.example.dailygoals.alarm.GoalAlarmScheduler
 import com.example.dailygoals.blocker.BlockRegistry
 import com.example.dailygoals.blocker.PocStore
 import com.example.dailygoals.blocker.ScheduledBlockSync
@@ -60,10 +62,12 @@ class SkritiApp : Application() {
 
     val wallpaper: WallpaperController by lazy { WallpaperController(this, WallpaperStore(this)) }
 
+    val alarmStore: AlarmStore by lazy { AlarmStore(this) }
+
     val coolingOff: CoolingOffGate by lazy { CoolingOffGate(blocks, repository) }
 
     val warnings: WarningRunner by lazy {
-        WarningRunner(repository, AlarmScheduler(this, permissions), permissions, WarningNotifier(this), ScheduledBlockSync(this, blocks), wallpaper)
+        WarningRunner(repository, AlarmScheduler(this, permissions), permissions, WarningNotifier(this), ScheduledBlockSync(this, blocks), wallpaper, GoalAlarmScheduler(this))
     }
 
     @OptIn(FlowPreview::class)

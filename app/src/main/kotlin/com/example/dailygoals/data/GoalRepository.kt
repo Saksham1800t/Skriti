@@ -3,6 +3,8 @@ package com.example.dailygoals.data
 import androidx.room.withTransaction
 import com.example.dailygoals.data.backup.BackupCodec
 import com.example.dailygoals.engine.ActiveBlock
+import com.example.dailygoals.engine.AlarmRing
+import com.example.dailygoals.engine.AlarmRules
 import com.example.dailygoals.engine.AmountRules
 import com.example.dailygoals.engine.BlockKind
 import com.example.dailygoals.engine.CheckAction
@@ -587,6 +589,14 @@ class GoalRepository(
     fun neutralDates(): Set<LocalDate> = settings.evalState().neutralDates
 
     fun currentSettings() = settings.settings.value
+
+    /** The next goal alarm to ring, skipping paused and rescued days. */
+    suspend fun nextGoalAlarm(): AlarmRing? {
+        val pauseRows = pauseDao.all().map(PauseEventEntity::toPause)
+        val rescued = rescuedDates()
+        val goals = goalDao.all().map(GoalEntity::toModel)
+        return AlarmRules.earliest(goals, clock.now(), clock.zone) { goalId, date -> date in rescued || PauseRules.isPaused(pauseRows, goalId, date) }
+    }
 
     /** Goals that failed today with the strongest punishment, for the warning wallpaper. */
     suspend fun failedForWallpaper(): List<FailedGoal> {

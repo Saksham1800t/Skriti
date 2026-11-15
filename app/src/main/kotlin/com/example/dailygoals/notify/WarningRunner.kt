@@ -1,5 +1,6 @@
 package com.example.dailygoals.notify
 
+import com.example.dailygoals.alarm.GoalAlarmScheduler
 import com.example.dailygoals.blocker.ScheduledBlockSync
 import com.example.dailygoals.data.GoalRepository
 import com.example.dailygoals.wallpaper.WallpaperController
@@ -22,6 +23,7 @@ class WarningRunner(
     private val notifier: WarningNotifier,
     private val blockSync: ScheduledBlockSync,
     private val wallpaper: WallpaperController,
+    private val goalAlarms: GoalAlarmScheduler,
 ) {
     private val lock = Mutex()
 
@@ -33,6 +35,7 @@ class WarningRunner(
         val nowMillis = System.currentTimeMillis()
         val midnight = java.time.LocalDate.now(zone).plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
         wallpaper.refresh(repository.failedForWallpaper(), nowMillis, midnight)
+        goalAlarms.schedule(repository.nextGoalAlarm())
         val scheduled = repository.scheduledBatch()
         blockSync.apply(scheduled.blocks)
         val batch = repository.warningBatch()
