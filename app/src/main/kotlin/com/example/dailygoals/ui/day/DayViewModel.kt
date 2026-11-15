@@ -10,6 +10,7 @@ import com.example.dailygoals.data.GoalRepository
 import com.example.dailygoals.data.SettingsStore
 import com.example.dailygoals.engine.CheckAction
 import com.example.dailygoals.engine.Clock
+import com.example.dailygoals.data.StakeEntity
 import com.example.dailygoals.engine.Consistency
 import com.example.dailygoals.engine.NeutralDays
 import com.example.dailygoals.engine.PauseRules
@@ -117,6 +118,29 @@ class DayViewModel(
 
     fun select(date: LocalDate) {
         pickedDate.value = date.takeIf { it != clock.now().toLocalDate() }
+    }
+
+    val seenFailures: StateFlow<Set<String>> = settings.seenFailures
+
+    val stakes: StateFlow<List<StakeEntity>> = repository.stakes
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MILLIS), emptyList())
+
+    fun failureSeen(goalId: Long, date: LocalDate) = settings.markFailureSeen("$goalId:$date")
+
+    fun saveNote(goalId: Long, date: LocalDate, tag: String?, note: String) {
+        viewModelScope.launch { repository.saveFailNote(goalId, date, tag, note) }
+    }
+
+    fun recover(goalId: Long, date: LocalDate) {
+        viewModelScope.launch { repository.recover(goalId, date) }
+    }
+
+    fun completeStake(id: Long) {
+        viewModelScope.launch { repository.completeStake(id) }
+    }
+
+    fun dismissStake(id: Long) {
+        viewModelScope.launch { repository.dismissStake(id) }
     }
 
     fun useRescueDay(date: LocalDate) {

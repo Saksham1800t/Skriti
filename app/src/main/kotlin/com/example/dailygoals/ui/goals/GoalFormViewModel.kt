@@ -12,6 +12,7 @@ import com.example.dailygoals.engine.GoalError
 import com.example.dailygoals.engine.GoalPause
 import com.example.dailygoals.engine.HabitPauseLength
 import com.example.dailygoals.engine.PauseRules
+import com.example.dailygoals.engine.RecoveryRules
 import com.example.dailygoals.engine.GoalValidator
 import com.example.dailygoals.engine.Intensity
 import com.example.dailygoals.engine.PunishmentRules
@@ -19,6 +20,7 @@ import com.example.dailygoals.model.Frequency
 import com.example.dailygoals.model.Goal
 import com.example.dailygoals.model.GoalAvoidance
 import com.example.dailygoals.model.GoalDiscipline
+import com.example.dailygoals.model.GoalMeaning
 import com.example.dailygoals.model.GoalMeasurement
 import com.example.dailygoals.model.GoalReminder
 import com.example.dailygoals.model.GoalSchedule
@@ -76,6 +78,10 @@ data class GoalFormState(
     val pendingAt: Long? = null,
     val pendingArchive: Boolean = false,
     val pause: GoalPause? = null,
+    val why: String = "",
+    val ifFail: String = "",
+    val stake: String = "",
+    val recoveryAllowed: Boolean = true,
     val errors: Set<GoalError> = emptySet(),
     val original: Goal? = null,
 ) {
@@ -102,6 +108,9 @@ data class GoalFormState(
         )
 
     val avoidance: GoalAvoidance get() = GoalAvoidance(blockPackages)
+
+    val meaning: GoalMeaning
+        get() = GoalMeaning(why.trim().ifEmpty { null }, ifFail.trim().ifEmpty { null }, stake.trim().ifEmpty { null }, recoveryAllowed)
 
     val reminder: GoalReminder
         get() = GoalReminder(warningMode, intervalMinutes, allDayMinute, strongAlert && warningMode != WarningMode.NONE)
@@ -186,6 +195,10 @@ class GoalFormViewModel(private val repository: GoalRepository, private val cloc
                     allowTempAccess = goal.discipline.allowTempAccess,
                     pendingId = pending?.id,
                     pause = pauseNow,
+                    why = goal.meaning.why.orEmpty(),
+                    ifFail = goal.meaning.ifFail.orEmpty(),
+                    stake = goal.meaning.stake.orEmpty(),
+                    recoveryAllowed = goal.meaning.recoveryAllowed,
                     pendingAt = pending?.appliesAt,
                     pendingArchive = pending != null && repository.isArchive(pending),
                     original = goal,
@@ -211,7 +224,7 @@ class GoalFormViewModel(private val repository: GoalRepository, private val cloc
         if (it.isEdit) {
             it.copy(type = type)
         } else {
-            it.copy(type = type, failOnDayEnd = type == GoalType.AVOID, failOnManual = type == GoalType.AVOID)
+            it.copy(type = type, failOnDayEnd = type == GoalType.AVOID, failOnManual = type == GoalType.AVOID, recoveryAllowed = RecoveryRules.defaultAllowed(type == GoalType.AVOID))
         }
     }
 
@@ -235,6 +248,7 @@ class GoalFormViewModel(private val repository: GoalRepository, private val cloc
             measurement = form.measurement,
             reminder = form.reminder,
             avoidance = form.avoidance,
+            meaning = form.meaning,
         )
         viewModelScope.launch {
             val appliesAt = repository.save(goal)
