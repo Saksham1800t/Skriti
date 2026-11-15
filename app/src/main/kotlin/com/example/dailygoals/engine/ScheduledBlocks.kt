@@ -42,7 +42,7 @@ object ScheduledBlocks {
 
     /**
      * The blocks that must be in force at [now] and the next moment one starts or ends. An all-day block
-     * that continues straight into the next day gets one end time, so there is no gap at midnight.
+     * ends at midnight, so the screen can say "until 00:00"; the wake-up at that moment starts the next day's.
      */
     fun plan(goals: List<Goal>, now: LocalDateTime, zone: ZoneId): ScheduledPlan {
         val instant = now.atZone(zone).toInstant()
@@ -54,7 +54,7 @@ object ScheduledBlocks {
             val next = span(goal, today.plusDays(1), zone)
             listOfNotNull(current, next).forEach { changes += listOf(it.first, it.second) }
             if (current == null || instant < current.first || instant >= current.second) return@forEach
-            val end = if (next != null && next.first == current.second) next.second else current.second
+            val end = current.second
             goal.avoidance.temptingPackages.forEach { pkg ->
                 active += ActiveBlock(goal.id, goal.name, pkg, BlockKind.SCHEDULED, end.toEpochMilli(), goal.discipline.blockMessage, today.toString(), goal.discipline.allowTempAccess)
             }

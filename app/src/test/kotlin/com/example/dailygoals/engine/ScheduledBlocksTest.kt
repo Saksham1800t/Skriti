@@ -64,9 +64,12 @@ class ScheduledBlocksTest {
     }
 
     @Test
-    fun withNoWindowTheAppsAreBlockedAllDayWithNoGapAtMidnight() {
+    fun withNoWindowTheAppsAreBlockedUntilMidnightAndTheNextDayStartsThere() {
         val block = plan(allDay, at(friday, 23, 59)).active.single()
-        assertEquals(millis(friday.plusDays(2), 0), block.endsAtMillis)
+        assertEquals(millis(friday.plusDays(1), 0), block.endsAtMillis)
+        assertEquals(millis(friday.plusDays(1), 0), plan(allDay, at(friday, 23, 59)).nextChange!!.toEpochMilli())
+        val nextDay = plan(allDay, at(friday.plusDays(1), 0)).active.single()
+        assertEquals(millis(friday.plusDays(2), 0), nextDay.endsAtMillis)
     }
 
     @Test
