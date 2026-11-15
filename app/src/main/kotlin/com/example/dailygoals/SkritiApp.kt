@@ -13,6 +13,8 @@ import com.example.dailygoals.data.SettingsStore
 import com.example.dailygoals.data.backup.BackupService
 import com.example.dailygoals.engine.Clock
 import com.example.dailygoals.notify.AlarmScheduler
+import com.example.dailygoals.wallpaper.WallpaperController
+import com.example.dailygoals.wallpaper.WallpaperStore
 import com.example.dailygoals.notify.FailureNotifier
 import com.example.dailygoals.notify.NotificationChannels
 import com.example.dailygoals.notify.PermissionChecker
@@ -55,10 +57,12 @@ class SkritiApp : Application() {
 
     val blocks: BlockRegistry by lazy { BlockRegistry(this) }
 
+    val wallpaper: WallpaperController by lazy { WallpaperController(this, WallpaperStore(this)) }
+
     val coolingOff: CoolingOffGate by lazy { CoolingOffGate(blocks, repository) }
 
     val warnings: WarningRunner by lazy {
-        WarningRunner(repository, AlarmScheduler(this, permissions), permissions, WarningNotifier(this), ScheduledBlockSync(this, blocks))
+        WarningRunner(repository, AlarmScheduler(this, permissions), permissions, WarningNotifier(this), ScheduledBlockSync(this, blocks), wallpaper)
     }
 
     @OptIn(FlowPreview::class)

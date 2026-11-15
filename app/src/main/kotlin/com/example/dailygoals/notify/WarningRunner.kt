@@ -2,6 +2,7 @@ package com.example.dailygoals.notify
 
 import com.example.dailygoals.blocker.ScheduledBlockSync
 import com.example.dailygoals.data.GoalRepository
+import com.example.dailygoals.wallpaper.WallpaperController
 import com.example.dailygoals.engine.DeliveryLevel
 import com.example.dailygoals.engine.DeliveryLevels
 import com.example.dailygoals.engine.NotificationCap
@@ -20,6 +21,7 @@ class WarningRunner(
     private val permissions: PermissionChecker,
     private val notifier: WarningNotifier,
     private val blockSync: ScheduledBlockSync,
+    private val wallpaper: WallpaperController,
 ) {
     private val lock = Mutex()
 
@@ -27,6 +29,10 @@ class WarningRunner(
         repository.applyDuePending()
         repository.evaluate()
         repository.takeResumedGoals().forEach(notifier::postResumed)
+        val zone = java.time.ZoneId.systemDefault()
+        val nowMillis = System.currentTimeMillis()
+        val midnight = java.time.LocalDate.now(zone).plusDays(1).atStartOfDay(zone).toInstant().toEpochMilli()
+        wallpaper.refresh(repository.failedForWallpaper(), nowMillis, midnight)
         val scheduled = repository.scheduledBatch()
         blockSync.apply(scheduled.blocks)
         val batch = repository.warningBatch()

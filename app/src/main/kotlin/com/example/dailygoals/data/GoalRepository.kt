@@ -22,6 +22,8 @@ import com.example.dailygoals.engine.NeutralDays
 import com.example.dailygoals.engine.PauseRules
 import com.example.dailygoals.engine.PeriodPunishment
 import com.example.dailygoals.engine.FailNotes
+import com.example.dailygoals.engine.FailedGoal
+import com.example.dailygoals.engine.WallpaperRules
 import com.example.dailygoals.engine.RecoveryCheck
 import com.example.dailygoals.engine.RecoveryRules
 import com.example.dailygoals.engine.RescueCheck
@@ -585,6 +587,19 @@ class GoalRepository(
     fun neutralDates(): Set<LocalDate> = settings.evalState().neutralDates
 
     fun currentSettings() = settings.settings.value
+
+    /** Goals that failed today with the strongest punishment, for the warning wallpaper. */
+    suspend fun failedForWallpaper(): List<FailedGoal> {
+        val today = clock.now().toLocalDate()
+        val blocks = punishments?.activeBlocks().orEmpty()
+        val rows = checkInDao.all().filter { it.date == today.toString() && it.status == DayStatus.FAILED }
+        return rows.mapNotNull { row ->
+            val goal = goalDao.find(row.goalId)?.toModel() ?: return@mapNotNull null
+            if (goal.state != GoalState.ACTIVE || !WallpaperRules.triggers(goal.discipline.intensity, row.punishmentSkipped)) return@mapNotNull null
+            val ends = blocks.filter { it.goalId == goal.id && it.kind == BlockKind.PUNISHMENT }.maxOfOrNull { it.endsAtMillis }
+            FailedGoal(goal.name, goal.meaning.stake, ends)
+        }
+    }
 
     fun sentCount(goalId: Long, date: LocalDate): Int = settings.sentCount(goalId, date)
 

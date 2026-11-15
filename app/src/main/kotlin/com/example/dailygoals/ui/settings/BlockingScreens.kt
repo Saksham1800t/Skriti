@@ -178,4 +178,4 @@ private fun MessageEditor(title: Int, saved: String, kind: BlockKind, onSave: (S
     }
 }
 
-enum class BlockingPage { BLOCKED_APPS, SAFE_APPS, MESSAGES, TEMP_ACCESS }
+enum class BlockingPage { BLOCKED_APPS, SAFE_APPS, MESSAGES, TEMP_ACCESS, WALLPAPER }

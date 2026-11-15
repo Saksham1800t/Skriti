@@ -114,6 +114,7 @@ fun SettingsScreen(
                 SettingsButton(stringResource(R.string.messages_title)) { onOpenBlockingPage(BlockingPage.MESSAGES) }
                 SettingsButton(stringResource(R.string.temp_settings_title)) { onOpenBlockingPage(BlockingPage.TEMP_ACCESS) }
             }
+            SettingsButton(stringResource(R.string.wallpaper_title), Modifier.padding(top = 8.dp)) { onOpenBlockingPage(BlockingPage.WALLPAPER) }
         }
 
         Group(R.string.settings_day) {
