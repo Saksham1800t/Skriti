@@ -129,7 +129,7 @@ fun SettingsScreen(
         }
 
         Section(R.string.settings_blocking, stringResource(R.string.settings_blocking_summary)) {
-            Text(stringResource(R.string.settings_pause_info), fontSize = 12.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            EmergencyPauseCard((context.applicationContext as SkritiApp).blocks)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 14.dp)) {
                 SettingsButton(stringResource(R.string.blocked_apps_title)) { onOpenBlockingPage(BlockingPage.BLOCKED_APPS) }
                 SettingsButton(stringResource(R.string.safe_apps_title)) { onOpenBlockingPage(BlockingPage.SAFE_APPS) }
