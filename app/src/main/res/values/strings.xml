@@ -6,6 +6,11 @@
     <string name="tab_goals">Goals</string>
     <string name="tab_settings">Settings</string>
     <string name="tab_insights">Insights</string>
+    <string name="day_dial_show">24-hour dial</string>
+    <string name="day_dial_hide">Hide the 24-hour dial</string>
+    <string name="day_compact_kept">%1$d of %2$d goals kept</string>
+    <string name="insights_unlock_title">Patterns unlock after %1$d days</string>
+    <string name="insights_unlock_text">Day %1$d of %2$d. Keep logging; Skriti will not guess before then.</string>
     <string name="failure_add_details">Add details (trigger, mood, place)</string>
     <string name="failure_hide_details">Hide details</string>
     <string name="access_title">Let Skriti see which app is open</string>
@@ -653,10 +658,10 @@
     <string name="insights_month">Month</string>
     <string name="insights_all">All</string>
     <string name="insights_goals">YOUR GOALS</string>
-    <string name="insights_all_goals">ALL GOALS</string>
+    <string name="insights_all_goals">LOOK BACK</string>
     <string name="insights_no_goals">Add a goal and its figures will show up here.</string>
     <string name="insights_line">Done %1$d%% · %2$d detected</string>
-    <string name="insights_not_enough">Not enough data yet · %1$d of %2$d days</string>
+    <string name="insights_not_enough">%1$d of %2$d days</string>
     <string name="insights_mistakes">Mistakes</string>
     <string name="insights_reviews">Weekly reviews</string>
     <string name="insights_pauses_used">Emergency pauses this month</string>

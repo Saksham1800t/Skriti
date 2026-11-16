@@ -2,6 +2,8 @@ package com.example.dailygoals.ui.day
 
 import android.content.Intent
 import android.provider.Settings
+import androidx.compose.foundation.layout.size
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -80,6 +82,7 @@ fun DayScreen(viewModel: DayViewModel, onAddGoal: () -> Unit, onOpenPermissions:
     var calendarOpen by rememberSaveable { mutableStateOf(false) }
     var dismissed by rememberSaveable { mutableStateOf("") }
     var hintDismissed by rememberSaveable { mutableStateOf(false) }
+    var dialOpen by rememberSaveable { mutableStateOf(false) }
     val checker = (LocalContext.current.applicationContext as SkritiApp).permissions
     var warningsBlocked by remember { mutableStateOf(false) }
     val context = LocalContext.current
@@ -154,7 +157,14 @@ fun DayScreen(viewModel: DayViewModel, onAddGoal: () -> Unit, onOpenPermissions:
             item(key = "empty") { EmptyDay(state.hasActiveGoals, onAddGoal) }
         } else {
             item(key = "dial") {
-                DialBlock(plan, nowMinute = state.now.minuteOfDay.takeIf { isToday }, minimumWeightPercent = state.minimumWeightPercent)
+                if (dialOpen || plan.items.size <= COMPACT_ABOVE) {
+                    DialBlock(plan, nowMinute = state.now.minuteOfDay.takeIf { isToday }, minimumWeightPercent = state.minimumWeightPercent)
+                    if (plan.items.size > COMPACT_ABOVE) {
+                        TextButton(onClick = { dialOpen = false }) { Text(stringResource(R.string.day_dial_hide)) }
+                    }
+                } else {
+                    CompactDial(plan, state.minimumWeightPercent) { dialOpen = true }
+                }
             }
             plan.items.groupBy { it.section }.forEach { (section, sectionItems) ->
                 item(key = section.name) { SectionHeader(section, plan.date, state.today) }
@@ -318,6 +328,46 @@ private fun BannerButton(text: String, onClick: () -> Unit) {
             .clickable(role = Role.Button, onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 8.dp),
     )
+}
+
+/** More goals than this and the day starts with a small summary, so the list is not pushed off the screen. */
+private const val COMPACT_ABOVE = 2
+
+@Composable
+private fun CompactDial(plan: DayPlan, minimumWeightPercent: Int, onOpen: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val summary = plan.summary
+    val shown = if (summary.total == 0) 0f else summary.kept.toFloat() / summary.total
+    val track = scheme.outline
+    val fill = scheme.primary
+    val description = stringResource(R.string.day_dial_description, summary.kept, summary.total, summary.failed)
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .padding(vertical = 8.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(22.dp))
+            .background(scheme.surface)
+            .border(1.dp, scheme.outline, RoundedCornerShape(22.dp))
+            .clickable(role = Role.Button, onClick = onOpen)
+            .semantics { contentDescription = description }
+            .padding(14.dp),
+    ) {
+        androidx.compose.foundation.Canvas(Modifier.size(56.dp)) {
+            val stroke = androidx.compose.ui.graphics.drawscope.Stroke(width = 7.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round)
+            drawArc(track, 0f, 360f, false, style = stroke)
+            if (shown > 0f) drawArc(fill, -90f, 360f * shown, false, style = stroke)
+        }
+        Column(Modifier.weight(1f).padding(start = 14.dp)) {
+            Text(stringResource(R.string.day_compact_kept, summary.kept, summary.total), fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(
+                stringResource(R.string.day_percent, summary.percent(minimumWeightPercent)),
+                fontSize = 13.sp,
+                color = scheme.onSurfaceVariant,
+            )
+        }
+        Text(stringResource(R.string.day_dial_show), fontSize = 12.5.sp, color = scheme.primary)
+    }
 }
 
 @Composable
