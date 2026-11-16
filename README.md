@@ -18,7 +18,7 @@ Download the APK from the project's Releases page and open it. Android asks once
 
 To use blocking you must switch on Skriti's blocker in Accessibility settings. If the switch is greyed out, open Skriti's App info, use the three-dot menu and choose "Allow restricted settings", then try again. Android turns the blocker off whenever the app is updated or force-stopped, and Skriti shows a red banner on Today until you switch it on again.
 
-Play Protect may warn about an app installed from a file. Choose to install anyway if you trust the source.
+Play Protect may stop the install. Some phones, including phones in India, show "App blocked to protect your device" with only an OK button for an app installed from a downloaded file. A test build that asked for almost no permissions was blocked too, so it is not one setting in Skriti. You can install from a computer with USB debugging on (`adb install skriti-0.4.0.apk`), which Play Protect does not check, or turn off "Scan apps with Play Protect" in the Play Store for the install and turn it back on afterwards. The second lowers your phone's protection, so only do it if you trust the download. A Google Play version may follow.
 
 ## Skriti and Skriti Lite
 Skriti has app blocking, which needs Android's accessibility service. Some phones, including phones in India, block a downloaded app that asks for that service. Skriti Lite is the same app without app blocking, the "did you just use it?" prompt and the accessibility service, so it installs without that block. Both use the same app id, so Lite can later be updated to the full version.
