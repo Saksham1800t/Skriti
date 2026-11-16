@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
+import com.example.dailygoals.BuildConfig
 import com.example.dailygoals.R
 import com.example.dailygoals.SkritiApp
 import com.example.dailygoals.engine.DeliveryLevel
@@ -103,7 +104,7 @@ fun PermissionsScreen(onClose: () -> Unit, modifier: Modifier = Modifier) {
             granted = status.exactAlarms,
             buttonText = stringResource(R.string.permission_open_settings),
         ) { open(checker.exactAlarmSettingsIntent()) }
-        PermissionRow(
+        if (BuildConfig.FULL_SCREEN_ALERTS) PermissionRow(
             title = stringResource(R.string.permission_full_screen),
             help = stringResource(R.string.permission_full_screen_help),
             granted = status.fullScreen,

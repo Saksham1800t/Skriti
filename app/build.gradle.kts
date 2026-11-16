@@ -66,10 +66,12 @@ android {
         create("full") {
             dimension = "edition"
             buildConfigField("boolean", "BLOCKING", "true")
+            buildConfigField("boolean", "FULL_SCREEN_ALERTS", "true")
         }
         create("lite") {
             dimension = "edition"
             buildConfigField("boolean", "BLOCKING", "false")
+            buildConfigField("boolean", "FULL_SCREEN_ALERTS", "false")
             versionNameSuffix = "-lite"
         }
     }

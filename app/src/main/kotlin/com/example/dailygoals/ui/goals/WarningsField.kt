@@ -16,6 +16,7 @@ import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.dailygoals.BuildConfig
 import com.example.dailygoals.R
 import com.example.dailygoals.model.GoalReminder
 import com.example.dailygoals.model.WarningMode
@@ -55,7 +56,7 @@ internal fun WarningsField(form: GoalFormState, viewModel: GoalFormViewModel) {
         } else {
             HelpText(R.string.warnings_from_check_time)
         }
-        Row(
+        if (BuildConfig.FULL_SCREEN_ALERTS) Row(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
