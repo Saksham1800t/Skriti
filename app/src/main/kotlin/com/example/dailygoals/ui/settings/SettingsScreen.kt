@@ -70,6 +70,7 @@ fun SettingsScreen(
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var message by remember { mutableStateOf<String?>(null) }
+    var helpOpen by remember { mutableStateOf(false) }
     var pending by remember { mutableStateOf<Backup?>(null) }
     val stamp = LocalDate.now().format(DateTimeFormatter.ISO_DATE)
 
@@ -190,6 +191,7 @@ fun SettingsScreen(
             SettingsButton(stringResource(R.string.settings_restore), Modifier.padding(top = 8.dp)) {
                 opener.launch(arrayOf("application/json", "text/plain", "application/octet-stream"))
             }
+            SettingsButton(stringResource(R.string.help_open), Modifier.padding(top = 8.dp)) { helpOpen = true }
             message?.let { Text(it, fontSize = 13.sp, modifier = Modifier.padding(top = 10.dp)) }
         }
 
@@ -218,6 +220,31 @@ fun SettingsScreen(
             fontSize = 12.5.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(top = 24.dp),
+        )
+    }
+
+    if (helpOpen) {
+        AlertDialog(
+            onDismissRequest = { helpOpen = false },
+            title = { Text(stringResource(R.string.help_title)) },
+            text = {
+                Column(Modifier.verticalScroll(rememberScrollState())) {
+                    listOf(
+                        R.string.help_minimum_t to R.string.help_minimum_d,
+                        R.string.help_grace_t to R.string.help_grace_d,
+                        R.string.help_recovery_t to R.string.help_recovery_d,
+                        R.string.help_rescue_t to R.string.help_rescue_d,
+                        R.string.help_penalty_t to R.string.help_penalty_d,
+                        R.string.help_pause_t to R.string.help_pause_d,
+                        R.string.help_temp_t to R.string.help_temp_d,
+                        R.string.help_cooling_t to R.string.help_cooling_d,
+                    ).forEach { (term, meaning) ->
+                        Text(stringResource(term), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 10.dp))
+                        Text(stringResource(meaning), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            },
+            confirmButton = { TextButton(onClick = { helpOpen = false }) { Text(stringResource(R.string.form_ok)) } },
         )
     }
 
