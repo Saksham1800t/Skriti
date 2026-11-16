@@ -151,6 +151,7 @@ fun AppRoot() {
                     Tab.INSIGHTS -> InsightsScreen(
                         viewModel = viewModel(factory = InsightsViewModel.Factory),
                         onOpenReviews = { reviewList = true },
+                        onEditGoal = openForm,
                     )
                     Tab.SETTINGS -> SettingsScreen(
                         viewModel = viewModel(factory = SettingsViewModel.Factory),

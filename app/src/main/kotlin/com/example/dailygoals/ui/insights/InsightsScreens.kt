@@ -16,6 +16,7 @@ import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -32,6 +33,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.dailygoals.R
+import com.example.dailygoals.engine.Suggestion
+import com.example.dailygoals.engine.SuggestionKind
 import com.example.dailygoals.engine.GoalHistory
 import com.example.dailygoals.engine.InsightRange
 import com.example.dailygoals.engine.Mistake
@@ -45,14 +48,14 @@ import java.time.format.DateTimeFormatter
 private enum class Page { LIST, GOAL, MISTAKES }
 
 @Composable
-fun InsightsScreen(viewModel: InsightsViewModel, onOpenReviews: () -> Unit, modifier: Modifier = Modifier) {
+fun InsightsScreen(viewModel: InsightsViewModel, onOpenReviews: () -> Unit, onEditGoal: (Long) -> Unit, modifier: Modifier = Modifier) {
     var page by rememberSaveable { mutableStateOf(Page.LIST) }
     var goalId by rememberSaveable { mutableStateOf(0L) }
     var range by rememberSaveable { mutableStateOf(InsightRange.WEEK) }
     val state by remember(range) { viewModel.state(range) }.collectAsStateWithLifecycle()
     val data = state ?: return
     when (page) {
-        Page.LIST -> InsightsList(data, range, { range = it }, onOpenGoal = { goalId = it; page = Page.GOAL }, onMistakes = { page = Page.MISTAKES }, onReviews = onOpenReviews, modifier = modifier)
+        Page.LIST -> InsightsList(data, range, { range = it }, onOpenGoal = { goalId = it; page = Page.GOAL }, onMistakes = { page = Page.MISTAKES }, onReviews = onOpenReviews, onDismiss = viewModel::dismiss, onEditGoal = onEditGoal, modifier = modifier)
         Page.GOAL -> data.goals.firstOrNull { it.goal.id == goalId }?.let { GoalInsightPage(it, data.mistakes.filter { m -> m.goalId == goalId }.size, onBack = { page = Page.LIST }, modifier = modifier) } ?: run { page = Page.LIST }
         Page.MISTAKES -> MistakesPage(data, onBack = { page = Page.LIST }, modifier = modifier)
     }
@@ -66,6 +69,8 @@ private fun InsightsList(
     onOpenGoal: (Long) -> Unit,
     onMistakes: () -> Unit,
     onReviews: () -> Unit,
+    onDismiss: (Suggestion) -> Unit,
+    onEditGoal: (Long) -> Unit,
     modifier: Modifier,
 ) {
     Column(modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 12.dp)) {
@@ -80,6 +85,26 @@ private fun InsightsList(
             onSelect = onRange,
             modifier = Modifier.padding(top = 12.dp),
         )
+        if (data.suggestions.isNotEmpty()) {
+            Label(R.string.insights_suggestions)
+            data.suggestions.forEach { item ->
+                Card {
+                    Column(Modifier.weight(1f)) {
+                        Text(
+                            when (item.suggestion.kind) {
+                                SuggestionKind.LOWER_TARGET -> stringResource(R.string.suggest_lower, item.goal.name, item.suggestion.days)
+                                SuggestionKind.RAISE -> stringResource(R.string.suggest_raise, item.goal.name, item.suggestion.days)
+                            },
+                            fontSize = 14.sp,
+                        )
+                        Row {
+                            TextButton(onClick = { onEditGoal(item.goal.id) }) { Text(stringResource(R.string.suggest_edit)) }
+                            TextButton(onClick = { onDismiss(item.suggestion) }) { Text(stringResource(R.string.suggest_dismiss)) }
+                        }
+                    }
+                }
+            }
+        }
         Label(R.string.insights_goals)
         if (data.goals.isEmpty()) Text(stringResource(R.string.insights_no_goals), color = MaterialTheme.colorScheme.onSurfaceVariant)
         data.goals.forEach { insight ->

@@ -16,6 +16,8 @@ import com.example.dailygoals.engine.Mistake
 import com.example.dailygoals.engine.NeutralDays
 import com.example.dailygoals.engine.PatternReport
 import com.example.dailygoals.engine.PatternRules
+import com.example.dailygoals.engine.Suggestion
+import com.example.dailygoals.engine.SuggestionRules
 import com.example.dailygoals.model.Goal
 import com.example.dailygoals.model.GoalState
 import java.time.LocalDate
@@ -26,10 +28,13 @@ import kotlinx.coroutines.flow.stateIn
 
 data class GoalInsight(val goal: Goal, val report: PatternReport)
 
+data class GoalSuggestion(val goal: Goal, val suggestion: Suggestion)
+
 data class InsightsState(
     val today: LocalDate,
     val goals: List<GoalInsight>,
     val mistakes: List<Mistake>,
+    val suggestions: List<GoalSuggestion>,
     val emergencyPausesThisMonth: Int,
     val recoveries: Int,
     val rescues: Int,
@@ -45,26 +50,31 @@ class InsightsViewModel(private val repository: GoalRepository, private val cloc
     private data class Quad<A, B, C, D>(val a: A, val b: B, val c: C, val d: D)
 
     fun state(range: InsightRange): StateFlow<InsightsState?> = inputs.let { flow ->
-        combine(flow, kotlinx.coroutines.flow.flowOf(range)) { q, r ->
+        combine(flow, kotlinx.coroutines.flow.flowOf(range), store.dismissedSuggestions, store.settings) { q, r, dismissed, settings ->
             val today = clock.now().toLocalDate()
             val dayEnd = store.settings.value.dayEndMinute
             val neutral = store.evalState().neutralDates + q.d
             val active = q.a.filter { it.state == GoalState.ACTIVE && !it.schedule.isQuota }
+            val suggestions = mutableListOf<GoalSuggestion>()
             val insights = active.map { goal ->
                 val goalNeutral = NeutralDays.forGoal(goal.id, neutral, emptySet(), q.c, goal.schedule.startDate, today)
                 val all = GoalHistory.records(goal, q.b, today, goalNeutral, dayEnd, zone)
+                if (settings.suggestionsOn) SuggestionRules.forGoal(goal, all, today, dismissed)?.let { suggestions += GoalSuggestion(goal, it) }
                 GoalInsight(goal, PatternRules.analyse(GoalHistory.within(all, r, today)))
             }
             InsightsState(
                 today = today,
                 goals = insights,
                 mistakes = GoalHistory.mistakes(q.a, q.b, zone),
+                suggestions = suggestions,
                 emergencyPausesThisMonth = pauseUses(),
                 recoveries = q.b.count { it.recovered },
                 rescues = q.d.size,
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_MILLIS), null)
     }
+
+    fun dismiss(suggestion: Suggestion) = store.dismissSuggestion(SuggestionRules.key(suggestion.goalId, suggestion.kind))
 
     /** The full history of one goal, so the goal page never depends on the range chosen on the list. */
     fun goalReport(goalId: Long, range: InsightRange): StateFlow<GoalInsight?> =
