@@ -20,6 +20,9 @@ To use blocking you must switch on Skriti's blocker in Accessibility settings. I
 
 Play Protect may warn about an app installed from a file. Choose to install anyway if you trust the source.
 
+## Skriti and Skriti Lite
+Skriti has app blocking, which needs Android's accessibility service. Some phones, including phones in India, block a downloaded app that asks for that service. Skriti Lite is the same app without app blocking, the "did you just use it?" prompt and the accessibility service, so it installs without that block. Both use the same app id, so Lite can later be updated to the full version.
+
 ## Permissions
 | Permission | Used for |
 |---|---|
@@ -53,10 +56,10 @@ All data stays on the phone. Uninstalling deletes it, so save a backup first:
 Requirements: JDK 17 and the Android SDK (platform 37, build-tools 37).
 1. Set `JAVA_HOME` to the JDK.
 2. Create `local.properties` with the SDK path, for example `sdk.dir=D\:/dev/android-sdk`.
-3. `./gradlew assembleDebug` (`gradlew.bat assembleDebug` on Windows). The APK is `app/build/outputs/apk/debug/app-debug.apk`.
-4. `./gradlew testDebugUnitTest` runs the unit tests.
+3. `./gradlew assembleFullDebug` (`gradlew.bat assembleFullDebug` on Windows). The APK is `app/build/outputs/apk/full/debug/app-full-debug.apk`. `assembleLiteDebug` builds Skriti Lite.
+4. `./gradlew testFullDebugUnitTest` runs the unit tests.
 
-For a signed release build, create `keystore.properties` in the project root with `storeFile`, `storePassword`, `keyAlias` and `keyPassword`, then run `./gradlew assembleRelease`. The file is not committed. Without it the release build is signed with the debug key and is for local testing only. A debug build installs next to a release build as "Skriti debug" and has a Time shift control for testing.
+For a signed release build, create `keystore.properties` in the project root with `storeFile`, `storePassword`, `keyAlias` and `keyPassword`, then run `./gradlew assembleFullRelease` or `./gradlew assembleLiteRelease`. The file is not committed. Without it the release build is signed with the debug key and is for local testing only. A debug build installs next to a release build as "Skriti debug" and has a Time shift control for testing.
 
 ## Notes for Android 17
 Android 17 restricts audio started from the background and activity launches from the background. Skriti plays the alarm only from a short foreground service, shows Done and I missed it as broadcasts rather than activity launches, and draws its block screen in an accessibility overlay, which needs no extra permission. Google's pages list no change to exact alarms, full-screen intents, live wallpapers, widgets or accessibility services. The block method was tried on a Moto G57 Power: it appears 30 to 250 ms after the app opens, works from the launcher and recents, after a restart, after lock and unlock, and in split-screen. Android switches the service off when the app is force-stopped or updated.
