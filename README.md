@@ -63,3 +63,6 @@ For a signed release build, create `keystore.properties` in the project root wit
 
 ## Notes for Android 17
 Android 17 restricts audio started from the background and activity launches from the background. Skriti plays the alarm only from a short foreground service, shows Done and I missed it as broadcasts rather than activity launches, and draws its block screen in an accessibility overlay, which needs no extra permission. Google's pages list no change to exact alarms, full-screen intents, live wallpapers, widgets or accessibility services. The block method was tried on a Moto G57 Power: it appears 30 to 250 ms after the app opens, works from the launcher and recents, after a restart, after lock and unlock, and in split-screen. Android switches the service off when the app is force-stopped or updated.
+
+## Licence
+Skriti is free software under the Apache License 2.0. See [LICENSE](LICENSE) and [NOTICE](NOTICE).
