@@ -1,5 +1,7 @@
 package com.example.dailygoals.ui.day
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -46,6 +48,8 @@ import androidx.compose.material3.TextButton
 import com.example.dailygoals.R
 import com.example.dailygoals.engine.StakeStatus
 import com.example.dailygoals.SkritiApp
+import com.example.dailygoals.blocker.BlockerStatus
+import com.example.dailygoals.engine.BlockerNeed
 import com.example.dailygoals.engine.CheckAction
 import com.example.dailygoals.engine.DayItem
 import com.example.dailygoals.engine.DeliveryLevel
@@ -78,9 +82,12 @@ fun DayScreen(viewModel: DayViewModel, onAddGoal: () -> Unit, onOpenPermissions:
     var hintDismissed by rememberSaveable { mutableStateOf(false) }
     val checker = (LocalContext.current.applicationContext as SkritiApp).permissions
     var warningsBlocked by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    var blockerOn by remember { mutableStateOf(true) }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
         val status = checker.status()
         warningsBlocked = status.warningLevel == DeliveryLevel.IN_APP || !status.exactAlarms
+        blockerOn = BlockerStatus.isServiceEnabled(context)
     }
     val nowMillis = state.now.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
     val dismissedIds = dismissed.split(',').mapNotNull(String::toLongOrNull).toSet()
@@ -136,6 +143,9 @@ fun DayScreen(viewModel: DayViewModel, onAddGoal: () -> Unit, onOpenPermissions:
                     modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
                 )
             }
+        }
+        if (isToday && !blockerOn && plan.items.any { BlockerNeed.needed(it.goal.type, it.goal.discipline.intensity, it.goal.avoidance.temptingPackages) }) {
+            item(key = "blocker-off") { BlockerOffBanner { runCatching { context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) } } }
         }
         if (isToday && warningsBlocked && !hintDismissed && plan.items.any { it.goal.reminder.mode != WarningMode.NONE }) {
             item(key = "warning-hint") { WarningHint(onOpenPermissions, onDismiss = { hintDismissed = true }) }
@@ -229,6 +239,26 @@ private fun DayHeader(date: LocalDate, today: LocalDate, onOpenCalendar: () -> U
             )
         }
         IconButtonBox(AppIconKind.CALENDAR, stringResource(R.string.day_open_calendar), onOpenCalendar)
+    }
+}
+
+/** Shown while a goal needs the blocking service and Android has switched it off. */
+@Composable
+private fun BlockerOffBanner(onTurnOn: () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(22.dp)
+    Column(
+        Modifier
+            .padding(bottom = 10.dp)
+            .fillMaxWidth()
+            .clip(shape)
+            .background(scheme.surface)
+            .border(1.dp, LocalStatusColors.current.failed, shape)
+            .padding(14.dp),
+    ) {
+        Text(stringResource(R.string.blocker_off_title), fontSize = 14.5.sp, fontWeight = FontWeight.Bold, color = LocalStatusColors.current.failed)
+        Text(stringResource(R.string.blocker_off_text), fontSize = 13.sp, modifier = Modifier.padding(top = 4.dp))
+        Row(Modifier.padding(top = 10.dp)) { BannerButton(stringResource(R.string.blocker_off_turn_on), onTurnOn) }
     }
 }
 

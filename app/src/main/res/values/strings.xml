@@ -6,6 +6,13 @@
     <string name="tab_goals">Goals</string>
     <string name="tab_settings">Settings</string>
     <string name="tab_insights">Insights</string>
+    <string name="access_title">Let Skriti see which app is open</string>
+    <string name="access_body">Skriti reads only the name of the app in front and the time, never what is on screen, and nothing leaves your phone. Without it, apps cannot be blocked or asked about. Switch Skriti on in the list that opens.</string>
+    <string name="access_open">Open Android settings</string>
+    <string name="access_skip">Not now, save without it</string>
+    <string name="blocker_off_title">Blocking is not running</string>
+    <string name="blocker_off_text">Android switched off Skriti\'s service, so blocked apps are not being watched.</string>
+    <string name="blocker_off_turn_on">Turn it on</string>
     <string name="fold_when">When it counts</string>
     <string name="fold_reminders">Reminders</string>
     <string name="fold_fail">If I fail</string>
