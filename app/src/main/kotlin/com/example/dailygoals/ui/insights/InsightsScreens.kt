@@ -105,6 +105,33 @@ private fun InsightsList(
                 }
             }
         }
+        val goalsWithData = data.goals.count { it.report.hasEnoughData }
+        if (data.goals.isNotEmpty() && goalsWithData == 0) {
+            val days = data.goals.maxOf { it.report.dueDays }.coerceAtMost(PatternRulesMin)
+            Card {
+                Column(Modifier.weight(1f)) {
+                    Text(stringResource(R.string.insights_unlock_title, PatternRulesMin), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+                    Text(stringResource(R.string.insights_unlock_text, days, PatternRulesMin), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    androidx.compose.material3.LinearProgressIndicator(progress = { days.toFloat() / PatternRulesMin }, modifier = Modifier.fillMaxWidth().padding(top = 8.dp))
+                }
+            }
+        }
+        Label(R.string.insights_all_goals)
+        Card(onClick = onMistakes) {
+            Text(stringResource(R.string.insights_mistakes), Modifier.weight(1f), fontSize = 15.sp)
+            Text(data.mistakes.size.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Card(onClick = onReviews) {
+            Text(stringResource(R.string.insights_reviews), Modifier.weight(1f), fontSize = 15.sp)
+        }
+        Card {
+            Text(stringResource(R.string.insights_pauses_used), Modifier.weight(1f), fontSize = 15.sp)
+            Text(data.emergencyPausesThisMonth.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Card {
+            Text(stringResource(R.string.insights_recoveries_rescues), Modifier.weight(1f), fontSize = 15.sp)
+            Text("${data.recoveries} · ${data.rescues}", color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         Label(R.string.insights_goals)
         if (data.goals.isEmpty()) Text(stringResource(R.string.insights_no_goals), color = MaterialTheme.colorScheme.onSurfaceVariant)
         data.goals.forEach { insight ->
@@ -124,22 +151,6 @@ private fun InsightsList(
                 }
                 if (report.hasEnoughData) Text("${report.successPercent}%", fontSize = 18.sp, fontWeight = FontWeight.Bold)
             }
-        }
-        Label(R.string.insights_all_goals)
-        Card(onClick = onMistakes) {
-            Text(stringResource(R.string.insights_mistakes), Modifier.weight(1f), fontSize = 15.sp)
-            Text(data.mistakes.size.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Card(onClick = onReviews) {
-            Text(stringResource(R.string.insights_reviews), Modifier.weight(1f), fontSize = 15.sp)
-        }
-        Card {
-            Text(stringResource(R.string.insights_pauses_used), Modifier.weight(1f), fontSize = 15.sp)
-            Text(data.emergencyPausesThisMonth.toString(), color = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        Card {
-            Text(stringResource(R.string.insights_recoveries_rescues), Modifier.weight(1f), fontSize = 15.sp)
-            Text("${data.recoveries} · ${data.rescues}", color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
     }
 }
