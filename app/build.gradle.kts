@@ -49,7 +49,7 @@ android {
         }
     }
 
-    // F-Droid builds the app from source and flags the signed dependency block AGP adds by default.
+    // Keep the APK free of the signed dependency-metadata block the Android Gradle plugin adds by default.
     dependenciesInfo {
         includeInApk = false
         includeInBundle = false

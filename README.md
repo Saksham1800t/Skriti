@@ -22,14 +22,8 @@ Skriti comes in two editions with the same app id, so Lite can later be updated 
 ### Skriti Lite: download
 Download `skriti-lite-0.4.2.apk` from the project's Releases page and open it. Android asks once to allow installs from your browser or Files app. Installing Lite from a download showed no Play Protect warning on the phone it was tested on.
 
-### Skriti (full): install with Obtainium
-Obtainium is a free installer app that installs and updates apps straight from a project's GitHub releases. Installing this way worked on a phone where a downloaded copy of the full edition was blocked.
-1. Install Obtainium: search "Obtainium" in the F-Droid app, or download it from https://github.com/ImranR98/Obtainium/releases.
-2. Open Obtainium, tap "Add App", paste `https://github.com/Saksham1800t/Skriti` and tap "Add".
-3. Obtainium may list both APKs on the release. Choose `skriti-0.4.2.apk`, not the one with "lite" in the name. To make it automatic, set "Filter APKs by regular expression" to `^skriti-[0-9.]+\.apk$`.
-4. Tap "Install" and allow Obtainium to install apps when Android asks. Obtainium also tells you when a new version is out.
-
-On a phone that already has Obtainium, this link opens the Add App screen with Skriti filled in: `obtainium://add/https://github.com/Saksham1800t/Skriti`
+### Skriti (full): download
+Download `skriti-0.4.2.apk` (the one without "lite" in the name) from the project's Releases page and open it. Some phones block a downloaded copy of the full edition because it asks for the accessibility service. If yours does, see the next section.
 
 ### If Play Protect stops an install
 Some phones show "App blocked to protect your device" with only an OK button. You can install from a computer with USB debugging on (`adb install skriti-0.4.2.apk`), which Play Protect does not check, or turn off "Scan apps with Play Protect" in the Play Store for the install and turn it back on afterwards. The second lowers your phone's protection, so only do it if you trust the download. A Google Play version may follow.
