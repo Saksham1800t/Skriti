@@ -16,6 +16,7 @@ import com.example.dailygoals.data.backup.BackupCodec
 import com.example.dailygoals.data.backup.BackupException
 import com.example.dailygoals.data.backup.BackupService
 import com.example.dailygoals.data.backup.RestoreMode
+import com.example.dailygoals.engine.BackupReminderRules
 import com.example.dailygoals.engine.Clock
 import java.time.LocalDateTime
 import kotlinx.coroutines.flow.StateFlow
@@ -47,7 +48,8 @@ class SettingsViewModel(
         settingsStore.update { it.copy(timeShiftMinutes = 0) }
     }
 
-    suspend fun exportJson(): String = backup.exportJson()
+    /** Making the restorable backup file counts as a backup and restarts the reminder. */
+    suspend fun exportJson(): String = backup.exportJson().also { settingsStore.markBackupExported(System.currentTimeMillis()) }
 
     suspend fun exportCsv(): String = backup.exportCsv()
 
@@ -63,6 +65,9 @@ class SettingsViewModel(
     fun setQuietHours(quiet: QuietHours) = settingsStore.update { it.copy(quietHours = quiet) }
 
     fun setReviewMinute(minute: Int) = settingsStore.update { it.copy(reviewMinute = minute) }
+    fun setSuggestions(on: Boolean) = settingsStore.update { it.copy(suggestionsOn = on) }
+    fun setBackupReminder(on: Boolean) = settingsStore.update { it.copy(backupReminderOn = on) }
+    fun setBackupReminderDays(days: Int) = settingsStore.update { it.copy(backupReminderDays = days.coerceIn(BackupReminderRules.DAYS_RANGE)) }
     fun setAskFailNote(on: Boolean) = settingsStore.update { it.copy(askFailNote = on) }
 
     fun restore(parsed: Backup, mode: RestoreMode, onDone: () -> Unit) {

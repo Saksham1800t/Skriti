@@ -1,6 +1,7 @@
 package com.example.dailygoals.data
 
 import android.content.SharedPreferences
+import com.example.dailygoals.engine.BackupReminderRules
 import com.example.dailygoals.engine.NotificationCap
 import com.example.dailygoals.engine.ReviewSchedule
 import com.example.dailygoals.engine.QuietHours
@@ -15,6 +16,9 @@ data class Settings(
     val timeShiftMinutes: Long = 0,
     val askFailNote: Boolean = true,
     val reviewMinute: Int = ReviewSchedule.DEFAULT_MINUTE,
+    val suggestionsOn: Boolean = true,
+    val backupReminderOn: Boolean = true,
+    val backupReminderDays: Int = BackupReminderRules.DEFAULT_DAYS,
     val maxNotificationsPerGoalPerDay: Int = NotificationCap.DEFAULT_MAX_PER_GOAL_PER_DAY,
     val quietHours: QuietHours = QuietHours(),
 ) {
@@ -43,6 +47,9 @@ class SettingsStore(private val prefs: SharedPreferences) {
             .putLong(KEY_TIME_SHIFT, next.timeShiftMinutes)
             .putBoolean(KEY_ASK_NOTE, next.askFailNote)
             .putInt(KEY_REVIEW_MINUTE, next.reviewMinute)
+            .putBoolean(KEY_SUGGESTIONS, next.suggestionsOn)
+            .putBoolean(KEY_BACKUP_REMINDER, next.backupReminderOn)
+            .putInt(KEY_BACKUP_DAYS, next.backupReminderDays)
             .putInt(KEY_MAX_NOTIFICATIONS, next.maxNotificationsPerGoalPerDay)
             .putBoolean(KEY_QUIET_ON, next.quietHours.enabled)
             .putInt(KEY_QUIET_START, next.quietHours.startMinute)
@@ -83,6 +90,33 @@ class SettingsStore(private val prefs: SharedPreferences) {
         mutableSeen.value = next
     }
 
+    private val mutableDismissed = MutableStateFlow(prefs.getStringSet(KEY_DISMISSED, emptySet()).orEmpty())
+
+    /** Suggestions the user dismissed, as goal id and kind, so each is offered once per goal. */
+    val dismissedSuggestions: StateFlow<Set<String>> = mutableDismissed.asStateFlow()
+
+    fun dismissSuggestion(key: String) {
+        val next = mutableDismissed.value + key
+        prefs.edit().putStringSet(KEY_DISMISSED, next).apply()
+        mutableDismissed.value = next
+    }
+
+    /** When the app was first used, the starting point of the backup reminder. Set on first call. */
+    fun firstSeenMillis(nowMillis: Long): Long {
+        val seen = prefs.getLong(KEY_FIRST_SEEN, 0L)
+        if (seen != 0L) return seen
+        prefs.edit().putLong(KEY_FIRST_SEEN, nowMillis).apply()
+        return nowMillis
+    }
+
+    fun lastBackupMillis(): Long? = prefs.getLong(KEY_LAST_BACKUP, 0L).takeIf { it != 0L }
+
+    fun markBackupExported(nowMillis: Long) = prefs.edit().putLong(KEY_LAST_BACKUP, nowMillis).apply()
+
+    fun lastBackupReminderMillis(): Long? = prefs.getLong(KEY_LAST_REMINDER, 0L).takeIf { it != 0L }
+
+    fun markBackupReminded(nowMillis: Long) = prefs.edit().putLong(KEY_LAST_REMINDER, nowMillis).apply()
+
     /** How many warnings were posted for the goal on the date, for the daily cap. */
     fun sentCount(goalId: Long, date: LocalDate): Int = prefs.getInt("$KEY_SENT_PREFIX$goalId:$date", 0)
 
@@ -121,6 +155,9 @@ class SettingsStore(private val prefs: SharedPreferences) {
         timeShiftMinutes = prefs.getLong(KEY_TIME_SHIFT, 0),
         askFailNote = prefs.getBoolean(KEY_ASK_NOTE, true),
         reviewMinute = prefs.getInt(KEY_REVIEW_MINUTE, ReviewSchedule.DEFAULT_MINUTE),
+        suggestionsOn = prefs.getBoolean(KEY_SUGGESTIONS, true),
+        backupReminderOn = prefs.getBoolean(KEY_BACKUP_REMINDER, true),
+        backupReminderDays = prefs.getInt(KEY_BACKUP_DAYS, BackupReminderRules.DEFAULT_DAYS),
         maxNotificationsPerGoalPerDay = prefs.getInt(KEY_MAX_NOTIFICATIONS, NotificationCap.DEFAULT_MAX_PER_GOAL_PER_DAY),
         quietHours = QuietHours(
             enabled = prefs.getBoolean(KEY_QUIET_ON, false),
@@ -142,6 +179,13 @@ class SettingsStore(private val prefs: SharedPreferences) {
         const val KEY_RESUMES = "announced_resumes"
         const val KEY_ASK_NOTE = "ask_fail_note"
         const val KEY_REVIEW_MINUTE = "review_minute"
+        const val KEY_SUGGESTIONS = "suggestions_on"
+        const val KEY_BACKUP_REMINDER = "backup_reminder_on"
+        const val KEY_BACKUP_DAYS = "backup_reminder_days"
+        const val KEY_DISMISSED = "dismissed_suggestions"
+        const val KEY_FIRST_SEEN = "first_seen_millis"
+        const val KEY_LAST_BACKUP = "last_backup_millis"
+        const val KEY_LAST_REMINDER = "last_backup_reminder_millis"
         const val KEY_MAX_NOTIFICATIONS = "max_notifications_per_goal"
         const val KEY_QUIET_ON = "quiet_hours_on"
         const val KEY_QUIET_START = "quiet_hours_start"

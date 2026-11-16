@@ -97,6 +97,26 @@ class WarningNotifier(private val context: Context) {
         runCatching { manager.notify("review", 0, notification) }
     }
 
+    @SuppressLint("MissingPermission")
+    fun postBackupReminder() {
+        if (!manager.areNotificationsEnabled()) return
+        val open = PendingIntent.getActivity(
+            context,
+            42,
+            Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP),
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
+        )
+        val notification = NotificationCompat.Builder(context, NotificationChannels.WARNINGS)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setContentTitle(context.getString(R.string.backup_notice_title))
+            .setContentText(context.getString(R.string.backup_notice_text))
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .setContentIntent(open)
+            .build()
+        runCatching { manager.notify("backup", 0, notification) }
+    }
+
     fun cancel(goalId: Long) {
         manager.activeNotifications.filter { it.id == goalId.toInt() && !FailureNotifier.owns(it.tag) && it.tag != "resumed" }.forEach { manager.cancel(it.tag, it.id) }
     }

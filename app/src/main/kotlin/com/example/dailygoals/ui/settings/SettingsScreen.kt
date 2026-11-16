@@ -35,6 +35,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.dailygoals.engine.BackupReminderRules
 import com.example.dailygoals.engine.NotificationCap
 import com.example.dailygoals.ui.components.StepperRow
 import com.example.dailygoals.R
@@ -158,6 +159,25 @@ fun SettingsScreen(
 
         Group(R.string.settings_review) {
             TimeBox(R.string.settings_review_time, R.string.settings_review_time, settings.reviewMinute, Modifier.fillMaxWidth(), onPicked = viewModel::setReviewMinute)
+        }
+
+        Group(R.string.settings_advice) {
+            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.settings_suggestions), fontSize = 15.sp, modifier = Modifier.weight(1f))
+                Switch(checked = settings.suggestionsOn, onCheckedChange = viewModel::setSuggestions)
+            }
+            Row(Modifier.fillMaxWidth().padding(top = 8.dp), verticalAlignment = Alignment.CenterVertically) {
+                Text(stringResource(R.string.settings_backup_reminder), fontSize = 15.sp, modifier = Modifier.weight(1f))
+                Switch(checked = settings.backupReminderOn, onCheckedChange = viewModel::setBackupReminder)
+            }
+            if (settings.backupReminderOn) {
+                StepperRow(
+                    stringResource(R.string.settings_backup_days),
+                    stringResource(R.string.settings_backup_days_value, settings.backupReminderDays),
+                    BackupReminderRules.DAYS_RANGE,
+                    settings.backupReminderDays,
+                ) { viewModel.setBackupReminderDays(it) }
+            }
         }
 
         Group(R.string.settings_scoring) {

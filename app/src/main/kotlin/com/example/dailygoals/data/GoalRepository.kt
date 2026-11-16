@@ -4,6 +4,7 @@ import androidx.room.withTransaction
 import com.example.dailygoals.data.backup.BackupCodec
 import com.example.dailygoals.engine.ActiveBlock
 import com.example.dailygoals.engine.AlarmRing
+import com.example.dailygoals.engine.BackupReminderRules
 import com.example.dailygoals.engine.GoalHistory
 import com.example.dailygoals.engine.ViolationAnswer
 import com.example.dailygoals.engine.ViolationRules
@@ -66,6 +67,8 @@ import kotlinx.coroutines.sync.withLock
 data class ScheduledBatch(val blocks: List<ActiveBlock>, val nextChangeIn: Duration?)
 
 data class WarningBatch(val plan: WarningPlan, val goals: Map<Long, Goal>, val resolvedToday: Set<Long>, val now: java.time.Instant)
+
+private const val MIN_REMINDER_WAIT_MILLIS = 60_000L
 
 class GoalRepository(
     private val database: AppDatabase,
@@ -157,6 +160,23 @@ class GoalRepository(
         choices.filterValues { it == NextWeek.PAUSE }.keys.forEach { pauseGoal(it, HabitPauseLength.DAYS_7, null) }
         choices.filterValues { it == NextWeek.DELETE }.keys.forEach { archive(it) }
         return choices.entries.firstOrNull { it.value == NextWeek.MODIFY }?.key
+    }
+
+    /** True once when the backup reminder is due; the reminder then waits a full period before the next one. */
+    fun takeBackupReminder(): Boolean {
+        val now = System.currentTimeMillis()
+        val s = settings.settings.value
+        val due = BackupReminderRules.isDue(s.backupReminderOn, now, settings.firstSeenMillis(now), settings.lastBackupMillis(), settings.lastBackupReminderMillis(), s.backupReminderDays)
+        if (due) settings.markBackupReminded(now)
+        return due
+    }
+
+    /** How long until the backup reminder is next due, or null when it is switched off. */
+    fun nextBackupReminderWait(): Duration? {
+        val now = System.currentTimeMillis()
+        val s = settings.settings.value
+        val wait = BackupReminderRules.waitMillis(s.backupReminderOn, now, settings.firstSeenMillis(now), settings.lastBackupMillis(), settings.lastBackupReminderMillis(), s.backupReminderDays) ?: return null
+        return Duration.ofMillis(wait.coerceAtLeast(MIN_REMINDER_WAIT_MILLIS))
     }
 
     /** Active avoid goals with tempting apps, for the prompt that asks whether one was just used. */
