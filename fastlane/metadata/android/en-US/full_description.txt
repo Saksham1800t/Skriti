@@ -1,0 +1,20 @@
+Skriti is a goal tracker that stays on your phone. Give each goal its own time slot and its own rules for when it counts as missed. Skriti reminds you, shows what is due now, and can block the apps that pull you off track. There is no account, no internet permission, no analytics and no ads.
+
+<b>What it does</b>
+<ul>
+<li>Goals to do or to avoid: every day, on chosen weekdays, every few days, a number of times a week or month, or on a monthly pattern.</li>
+<li>Your own rules for a miss: the day ends and it is not done, the time slot ends, or you press "I missed it". Optional extra time after the end.</li>
+<li>A smaller win: give a goal a minimum, for example 120 minutes with a minimum of 20, so a bad day can still count.</li>
+<li>Today: a 24-hour dial, goals grouped by deadline, a week strip and a month calendar, with your streaks.</li>
+<li>Reminders that get firmer as the deadline nears, and an optional real alarm.</li>
+<li>If you miss a goal: nothing, a notice, blocking the apps you choose, or blocking plus a warning wallpaper. An emergency unblock and an always-allowed list keep it safe.</li>
+<li>Avoid goals: choose the apps that tempt you. Skriti asks "Did you just use it?" and only your answer counts.</li>
+<li>Insights: the mistakes you noted, patterns once there is enough data, a weekly review every Sunday, and suggestions that never change a goal by themselves.</li>
+<li>A home-screen widget, backup and restore, and a break for a trip or an illness.</li>
+</ul>
+
+<b>Your data</b>
+Everything is stored on your phone. Skriti has no internet permission. Save a backup file to keep your history across a reinstall.
+
+<b>App blocking</b>
+Blocking needs Android's accessibility service, which Skriti uses only to learn the name of the app in front and the time. It never reads what is on the screen.
