@@ -50,6 +50,11 @@ import com.example.dailygoals.R
 import com.example.dailygoals.engine.GoalError
 import com.example.dailygoals.model.Frequency
 import com.example.dailygoals.model.GoalType
+import com.example.dailygoals.engine.Intensity
+import com.example.dailygoals.model.WarningMode
+import com.example.dailygoals.ui.schedulePhrase
+import com.example.dailygoals.ui.windowPhrase
+import java.time.LocalDate
 import com.example.dailygoals.ui.components.AccentButton
 import com.example.dailygoals.ui.components.AppIconKind
 import com.example.dailygoals.ui.components.IconButtonBox
@@ -62,6 +67,8 @@ import com.example.dailygoals.ui.theme.accentBrush
 import java.time.DayOfWeek
 
 private const val LAST_PICKABLE_HOUR = 23
+
+private val ALARM_ERRORS = setOf(GoalError.ALARM_NEEDS_WINDOW, GoalError.ALARM_NEEDS_TIME, GoalError.ALARM_OUTSIDE_WINDOW, GoalError.ALARM_NO_DAYS)
 
 @Composable
 fun GoalFormScreen(viewModel: GoalFormViewModel, onClose: () -> Unit, modifier: Modifier = Modifier) {
@@ -133,38 +140,77 @@ fun GoalFormScreen(viewModel: GoalFormViewModel, onClose: () -> Unit, modifier: 
             HelpText(if (form.type == GoalType.DO) R.string.form_type_do_help else R.string.form_type_avoid_help)
         }
 
-        FrequencyField(form, viewModel)
-
-        Field(R.string.form_window) {
-            SegmentedChoice(
-                options = listOf(
-                    false to stringResource(R.string.form_all_day),
-                    true to stringResource(R.string.form_set_times),
-                ),
-                selected = form.hasWindow,
-                onSelect = { hasWindow -> viewModel.edit { it.copy(hasWindow = hasWindow) } },
-            )
-            if (form.hasWindow) {
-                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
-                    TimeBox(R.string.form_starts, R.string.form_pick_start, form.startMinute, Modifier.weight(1f)) { minute ->
-                        viewModel.edit { it.copy(startMinute = minute) }
-                    }
-                    TimeBox(R.string.form_ends, R.string.form_pick_end, form.endMinute, Modifier.weight(1f)) { minute ->
-                        viewModel.edit { it.copy(endMinute = minute) }
-                    }
+        if (!form.hasWindow && form.warningMode != WarningMode.NONE) {
+            Row(Modifier.padding(top = 18.dp)) {
+                TimeBox(R.string.warnings_check_time, R.string.warnings_check_time, form.allDayMinute, Modifier.weight(1f)) { minute ->
+                    viewModel.edit { it.copy(allDayMinute = minute) }
                 }
-                ErrorText(form.errors, GoalError.WINDOW_END_NOT_AFTER_START, R.string.error_window_order)
             }
         }
+        if (form.type == GoalType.AVOID) BlockAppsField(form, viewModel)
 
-        FailureRulesField(form, viewModel)
-        MeasurementField(form, viewModel)
-        WarningsField(form, viewModel)
-        PunishmentField(form, viewModel)
-        BlockAppsField(form, viewModel)
-        AlarmField(form, viewModel)
-        MeaningField(form, viewModel)
-        PauseField(form, viewModel)
+        val whenSummary = stringResource(R.string.fold_join, schedulePhrase(form.schedule(LocalDate.now())), windowPhrase(form.window))
+        Fold(R.string.fold_when, whenSummary, forceOpen = form.errors.any { it != GoalError.NAME_BLANK && it != GoalError.NAME_TOO_LONG && it != GoalError.BLOCK_MESSAGE_TOO_LONG && it !in ALARM_ERRORS }) {
+            FrequencyField(form, viewModel)
+            Field(R.string.form_window) {
+                SegmentedChoice(
+                    options = listOf(
+                        false to stringResource(R.string.form_all_day),
+                        true to stringResource(R.string.form_set_times),
+                    ),
+                    selected = form.hasWindow,
+                    onSelect = { hasWindow -> viewModel.edit { it.copy(hasWindow = hasWindow) } },
+                )
+                if (form.hasWindow) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                        TimeBox(R.string.form_starts, R.string.form_pick_start, form.startMinute, Modifier.weight(1f)) { minute ->
+                            viewModel.edit { it.copy(startMinute = minute) }
+                        }
+                        TimeBox(R.string.form_ends, R.string.form_pick_end, form.endMinute, Modifier.weight(1f)) { minute ->
+                            viewModel.edit { it.copy(endMinute = minute) }
+                        }
+                    }
+                    ErrorText(form.errors, GoalError.WINDOW_END_NOT_AFTER_START, R.string.error_window_order)
+                }
+            }
+            FailureRulesField(form, viewModel)
+            MeasurementField(form, viewModel)
+        }
+
+        val warningLabel = stringResource(
+            when (form.warningMode) {
+                WarningMode.NONE -> R.string.warnings_none
+                WarningMode.ONCE -> R.string.warnings_once
+                WarningMode.REPEATING -> R.string.warnings_repeating
+            },
+        )
+        val reminderSummary = if (form.alarmOn) stringResource(R.string.fold_join, warningLabel, stringResource(R.string.fold_alarm_on)) else warningLabel
+        Fold(R.string.fold_reminders, reminderSummary, forceOpen = form.errors.any { it in ALARM_ERRORS }) {
+            WarningsField(form, viewModel)
+            AlarmField(form, viewModel)
+        }
+
+        val intensityLabel = stringResource(
+            when (form.intensity) {
+                Intensity.NONE -> R.string.intensity_none
+                Intensity.GENTLE -> R.string.intensity_gentle
+                Intensity.MODERATE -> R.string.intensity_moderate
+                Intensity.STRONG -> R.string.intensity_strong
+            },
+        )
+        Fold(R.string.fold_fail, intensityLabel, forceOpen = GoalError.BLOCK_MESSAGE_TOO_LONG in form.errors) {
+            PunishmentField(form, viewModel)
+            if (form.type != GoalType.AVOID) BlockAppsField(form, viewModel)
+        }
+
+        val meaningSet = listOf(form.why, form.ifFail, form.stake, form.ifText, form.thenText).any { it.isNotBlank() }
+        Fold(R.string.fold_why, stringResource(if (meaningSet) R.string.fold_filled else R.string.fold_optional)) {
+            MeaningField(form, viewModel)
+        }
+
+        Fold(R.string.fold_pause, stringResource(R.string.fold_pause_summary)) {
+            PauseField(form, viewModel)
+        }
 
         if (form.isEdit) {
             TextButton(onClick = { confirmDelete = true }, modifier = Modifier.padding(top = 8.dp)) {

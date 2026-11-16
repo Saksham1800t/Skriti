@@ -53,11 +53,6 @@ internal fun WarningsField(form: GoalFormState, viewModel: GoalFormViewModel) {
         if (form.hasWindow) {
             HelpText(R.string.warnings_from_window)
         } else {
-            Row(Modifier.padding(top = 10.dp)) {
-                TimeBox(R.string.warnings_check_time, R.string.warnings_check_time, form.allDayMinute, Modifier.weight(1f)) { minute ->
-                    viewModel.edit { it.copy(allDayMinute = minute) }
-                }
-            }
             HelpText(R.string.warnings_from_check_time)
         }
         Row(
