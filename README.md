@@ -1,162 +1,62 @@
 # Skriti
 
-A personal, offline Android habit tracker. Each goal has its own time window and
-its own failure rules, and the day screen shows what is due now, what can be done
-any time today and what was missed.
+A private, offline goal tracker for Android. Give each goal its own time slot and its own rules for when it counts as missed. Skriti reminds you, shows what is due now, and can block the apps that pull you off track. No account, no internet, no ads.
 
-What works today:
-
-- Create, edit and delete goals. A goal is something to do or something to avoid,
-  due every day or on chosen weekdays, all day or inside a time window.
-- Failure rules, in any combination: the window ends without a tick (after a grace
-  period of 0, 5, 10 or 15 minutes), the day ends without a tick, or an "I failed"
-  button. Ticking during the grace time still counts and is noted as late.
-- Amount goals with a target and a minimum, for example 120 minutes with a minimum of
-  20. Reaching the minimum still counts as kept. Quick-log chips, a custom amount, undo
-  and, for goals counted in minutes, a start and stop timer. A yes-or-no goal can also
-  name a smaller minimum version.
-- The day screen: a 24-hour dial with each goal's window, goals grouped by
-  deadline, a week strip and a month calendar. Each goal shows its consistency over
-  the last 30 days and its streaks.
-- Tick a goal, or mark it as missed. Past days can be edited; future days are
-  view only.
-- Settings: the day-end time, how much a minimum counts towards the day's percentage,
-  and backups.
-
-Not built yet: reminders and alarms, and app blocking. The rules run while the app is
-open; a miss that happened while it was closed is recorded the next time it opens.
-
-Run the unit tests with `./gradlew testDebugUnitTest`.
-
-## Your data and backups
-
-All data stays on the phone. Uninstalling the app deletes it, so save a backup first
-if you want to keep your history:
-
-- Settings, "Export all data" saves a JSON file with everything. "Export CSV" saves one
-  row per recorded day for use in a spreadsheet.
-- Settings, "Restore backup" reads a JSON file. Choose Merge to keep what is on the
-  phone and add the rest (for a day recorded on both sides the later edit wins), or
-  Replace to start from the backup.
-- Before the app upgrades its database, it copies the old database file next to it.
-
-## Build
-
-Requirements: JDK 17 and the Android SDK (platform 37, build-tools 37).
-
-1. Set `JAVA_HOME` to the JDK.
-2. Create `local.properties` in the project root with the SDK path, for example
-   `sdk.dir=D\:/dev/android-sdk`.
-3. Run `./gradlew assembleDebug` (`gradlew.bat assembleDebug` on Windows).
-
-The APK is written to `app/build/outputs/apk/debug/app-debug.apk`.
-
-Every push also builds the APK with GitHub Actions; download it from the run's
-`skriti-debug-apk` artifact.
+## What it does
+- **Goals to do or to avoid.** Daily, on chosen weekdays, every few days, a number of times a week or month, or on a monthly pattern. Any time of day or between two times.
+- **Your rules for a miss.** A goal counts as missed when the day ends and it is not done, when its time slot ends, or when you press "I missed it". Extra time after the end is optional.
+- **A smaller win.** Give a goal a minimum, for example 120 minutes with a minimum of 20. Reaching the minimum keeps your streak. Goals counted in minutes have a timer.
+- **Today.** A 24-hour dial, goals grouped by deadline, a week strip and a month calendar. Each goal shows how many of the last 30 days you kept and your streaks.
+- **Reminders.** Once or repeating, getting firmer as the deadline nears, with a Done button. An optional real alarm over the lock screen.
+- **If I miss it.** Nothing, a notice, blocking the apps you choose, or blocking plus a warning wallpaper on your home screen. An emergency unblock and an always-allowed list keep it safe.
+- **Avoid goals.** Choose the apps that tempt you. When one opens, Skriti asks "Did you just use it?" and only your answer counts. Or block the apps for the goal's time slot.
+- **Insights.** Mistakes with the trigger, mood and place you noted, patterns once there is enough data, a weekly review every Sunday, and suggestions that never change a goal by themselves.
+- **Widgets, backups and breaks.** A home-screen widget, backup and restore, and a break for a trip or an illness.
 
 ## Install
+Download the APK from the project's Releases page and open it. Android asks once to allow installs from that source.
 
-Copy the APK to the phone and open it, or run `adb install -r app-debug.apk` with
-USB debugging on. Android asks once to allow installs from that source.
+To use blocking you must switch on Skriti's blocker in Accessibility settings. If the switch is greyed out, open Skriti's App info, use the three-dot menu and choose "Allow restricted settings", then try again. Android turns the blocker off whenever the app is updated or force-stopped, and Skriti shows a red banner on Today until you switch it on again.
 
-## Warnings
-
-Each goal can warn once or repeatedly (every 5, 10, 15 or 30 minutes). Warnings start
-when the goal's window opens, or at a chosen check time for a goal with no window. They
-stop when the goal is ticked or fails, or when the day ends. The wording gets firmer
-("Still unticked", then "Grace ends in 6 min" or "You are 30 minutes late"). A warning
-has a Done button, and an "I failed" button for goals that use that rule.
-
-Only the next event is scheduled, with one alarm, and every warning is shown once. The
-app wakes for each warning, for each failure deadline and at midnight, and it rebuilds
-its schedule from the database after a reboot, an app update, a clock change or a time
-zone change. Whatever the app missed is repaired the next time it runs.
-
-A warning uses the highest level Android currently allows: a strong alert over the lock
-screen (only for goals with that switch on), a pop-up with sound, a quiet notification,
-or, with notifications off, only the view inside the app. Settings, "Warnings and
-permissions", shows which level is available and links to the right settings pages. The
-app opens this screen once on first launch and works without any of the permissions.
-
-## Android 17 notes
-
-Google's Android 17 behaviour-change pages list no change to exact alarms, notification
-permission, notification actions, full-screen intents, boot receivers or time-change
-broadcasts. Two changes touch this kind of app, and the design avoids both: audio started
-from the background is restricted, so warnings use the system notification sound and the
-app plays no sound itself; and background activity launches are tightened, so the Done
-and I failed buttons are broadcasts rather than activity launches, and the app opens only
-when you tap a notification. The app uses no custom notification layouts, which is the
-other area Android 17 limits.
-
-For app blocking (work in progress), Google's Android 17 pages show no new restriction on
-accessibility services. Two things are not settled by the documentation and are being tested on
-a real phone: a block screen started by an accessibility service counts as a background
-launch, which Android restricts for apps without the "Display over other apps" permission, so
-the planned way is a view drawn in an accessibility overlay window, which needs no extra
-permission; and sideloaded apps may need "Allow restricted settings" in app info before the
-accessibility switch can be turned on. A debug build has a hidden "Blocking test" screen in
-Settings for this. The result will be written here once it has been tried.
-
-For the wake alarm, the animated wallpaper and the widget (checked before building them): Google's
-Android 17 pages list no change to live wallpapers, app widgets or alarm clocks started with
-AlarmManager.setAlarmClock. The background-audio change does matter for the alarm. An app in the
-background may not start sound or take audio focus unless it is running a foreground service, even if
-it holds the exact alarm permission. So the alarm sound is played only from a short foreground
-service started by the alarm broadcast, which Android allows, and it stops when the alarm is dismissed or
-after ten minutes. The warning wallpaper plays no sound. A live wallpaper must be confirmed once in the
-system preview, and while it is active it replaces any other live wallpaper; the settings screen says so.
+Play Protect may warn about an app installed from a file. Choose to install anyway if you trust the source.
 
 ## Permissions
-
 | Permission | Used for |
 |---|---|
-| Notifications | Showing warnings (asked at runtime on Android 13 and newer) |
-| Exact alarms | Warnings at the exact minute; without it they can be a few minutes late |
-| Receive boot completed | Rebuilding the alarm after a reboot |
-| Full-screen intent | The strong alert over the lock screen; Android may keep it off |
+| Notifications | Reminders and the weekly review (asked when you first save a goal with reminders) |
+| Exact alarms | Reminders at the exact minute and the optional alarm |
+| Full-screen alerts | The loud reminder and the alarm over the lock screen |
+| Display over other apps | Optional; one way of showing the block screen |
+| Foreground service | Playing the alarm sound, and keeping the blocker running if you ask |
+| Run at start-up | Rebuilding reminders after a reboot |
+| Battery exemption | Optional; helps reminders arrive on phones that stop background apps |
+| Set wallpaper | Showing and removing the warning wallpaper |
+| Accessibility service | Knowing which app is in front, by name only, to block it or ask about it |
 
-The app has no internet permission and never will.
+Skriti has no internet permission and never will. See [PRIVACY.md](PRIVACY.md).
+
+## Your data and backups
+All data stays on the phone. Uninstalling deletes it, so save a backup first:
+- Settings, Backup, "Save backup file" writes a JSON file with everything. "Save for a spreadsheet" writes one row per recorded day and cannot be restored.
+- "Restore backup" reads a JSON file. "Add to what is here" keeps what is on the phone and adds the rest; "Replace everything" starts from the backup.
+- Before the app upgrades its database, it copies the old database file next to it.
 
 ## Known limits
+- Android 10 or newer is required. It is tested on Android 17 on one phone.
+- If you force-stop the app, Android cancels its alarms until you open it again. Alarms survive reboots, updates and clock changes.
+- Some phone brands (Xiaomi, Oppo, Vivo, Samsung and others) stop background apps. Exempt Skriti from battery optimisation and check any autostart list.
+- A time slot cannot cross midnight.
+- A block does not silence an app; Skriti presses pause on whatever is playing.
+- English only.
 
-- Android 10 or newer is required.
-- The splash animation plays on Android 12 and newer; older versions show the
-  still logo.
-- If you force-stop the app from Android settings, Android cancels its alarms and sends
-  it nothing until you open it again. Alarms survive normal process ends and reboots,
-  and everything is rebuilt when you reopen the app, but nothing can run while it is
-  stopped. This is an Android rule.
-- Some phone brands (Xiaomi, Oppo, Vivo, Samsung and others) stop background apps.
-  Exempt the app from battery optimisation and check any autostart list; the permissions
-  screen has a shortcut.
-- A strong alert over the lock screen needs Android to allow full-screen alerts for the
-  app, which it may not; the warning then arrives as a pop-up with sound.
-- A time window must start and end on the same day, so it cannot cross midnight.
-- Goals are listed in the order they were created; they cannot be reordered yet.
-- The goal form offers every day or chosen weekdays. Goals that are due a number of
-  times per week or month, every few days, or on a monthly pattern are understood by
-  the rules but have no screens yet.
-- Changing a goal's schedule or rules changes how it is judged from then on; days that
-  were already closed are not judged again.
-- Debug builds have a "Time shift" control in Settings that moves the app's clock for
-  testing; it does nothing in a release build.
+## Build from source
+Requirements: JDK 17 and the Android SDK (platform 37, build-tools 37).
+1. Set `JAVA_HOME` to the JDK.
+2. Create `local.properties` with the SDK path, for example `sdk.dir=D\:/dev/android-sdk`.
+3. `./gradlew assembleDebug` (`gradlew.bat assembleDebug` on Windows). The APK is `app/build/outputs/apk/debug/app-debug.apk`.
+4. `./gradlew testDebugUnitTest` runs the unit tests.
 
-## Blocking: proof of concept result
+For a signed release build, create `keystore.properties` in the project root with `storeFile`, `storePassword`, `keyAlias` and `keyPassword`, then run `./gradlew assembleRelease`. The file is not committed. Without it the release build is signed with the debug key and is for local testing only. A debug build installs next to a release build as "Skriti debug" and has a Time shift control for testing.
 
-Tested on a Moto G57 Power running Android 17 with one test app and no goal logic.
-
-- Chosen method: draw a full-screen block view in an accessibility overlay. It needs only
-  the accessibility service, appears 30 to 250 ms after the app opens, and is checked
-  against the window that is really in front, so a floating window or a late launcher
-  report never covers the home screen. "Home, then block screen" also works but needs
-  Display over other apps.
-- Works: opening from the launcher and recents, restart without opening Skriti, lock and
-  unlock, a second launcher, split-screen (the other pane counts as in front), and the
-  service coming back by itself after a process restart.
-- Does not work: Android switches the service off when the app is force-stopped, so it
-  must be switched on again; a watchdog notice tells the user. Apps installed from a
-  file are refused by Play Protect, so blocking builds are installed over a cable.
-- A block does not stop sound by itself; the test presses pause, which takes about 2.5 s
-  on YouTube.
-- Not yet run: leaving the phone idle for hours with battery optimisation on.
+## Notes for Android 17
+Android 17 restricts audio started from the background and activity launches from the background. Skriti plays the alarm only from a short foreground service, shows Done and I missed it as broadcasts rather than activity launches, and draws its block screen in an accessibility overlay, which needs no extra permission. Google's pages list no change to exact alarms, full-screen intents, live wallpapers, widgets or accessibility services. The block method was tried on a Moto G57 Power: it appears 30 to 250 ms after the app opens, works from the launcher and recents, after a restart, after lock and unlock, and in split-screen. Android switches the service off when the app is force-stopped or updated.
