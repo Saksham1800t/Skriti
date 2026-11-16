@@ -14,8 +14,8 @@ android {
         applicationId = "io.github.saksham1800t.skriti"
         minSdk = 29
         targetSdk = 37
-        versionCode = 4
-        versionName = "0.4.0"
+        versionCode = 5
+        versionName = "0.4.1"
     }
 
     // The release key stays on the maker's own machine: keystore.properties is never committed.
@@ -47,6 +47,12 @@ android {
             // Without keystore.properties the release build is signed with the debug key, for local testing only.
             signingConfig = signingConfigs.findByName("release") ?: signingConfigs.getByName("debug")
         }
+    }
+
+    // F-Droid builds the app from source and flags the signed dependency block AGP adds by default.
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
 
     buildFeatures {
