@@ -36,6 +36,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.example.dailygoals.engine.BackupReminderRules
+import com.example.dailygoals.ui.formatMinute
+import com.example.dailygoals.ui.goals.Fold
 import com.example.dailygoals.engine.NotificationCap
 import com.example.dailygoals.ui.components.StepperRow
 import com.example.dailygoals.R
@@ -100,33 +102,9 @@ fun SettingsScreen(
     Column(modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 12.dp)) {
         Text(stringResource(R.string.settings_title), fontSize = 24.sp, fontWeight = FontWeight.SemiBold)
 
-        Group(R.string.settings_warnings) {
+        Section(R.string.settings_perms, stringResource(R.string.settings_perms_summary)) {
             Text(stringResource(R.string.settings_warnings_help), fontSize = 12.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             SettingsButton(stringResource(R.string.settings_warnings_open), Modifier.padding(top = 10.dp), onOpenPermissions)
-        }
-
-        Group(R.string.settings_blocking) {
-            EmergencyPauseCard((context.applicationContext as SkritiApp).blocks)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 14.dp)) {
-                SettingsButton(stringResource(R.string.blocked_apps_title)) { onOpenBlockingPage(BlockingPage.BLOCKED_APPS) }
-                SettingsButton(stringResource(R.string.safe_apps_title)) { onOpenBlockingPage(BlockingPage.SAFE_APPS) }
-            }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
-                SettingsButton(stringResource(R.string.messages_title)) { onOpenBlockingPage(BlockingPage.MESSAGES) }
-                SettingsButton(stringResource(R.string.temp_settings_title)) { onOpenBlockingPage(BlockingPage.TEMP_ACCESS) }
-            }
-            SettingsButton(stringResource(R.string.wallpaper_title), Modifier.padding(top = 8.dp)) { onOpenBlockingPage(BlockingPage.WALLPAPER) }
-        }
-
-        Group(R.string.settings_day) {
-            Text(stringResource(R.string.settings_day_end), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            Text(stringResource(R.string.settings_day_end_help), fontSize = 12.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            TimeBox(R.string.settings_day_end_label, R.string.settings_day_end, settings.dayEndMinute, Modifier.padding(top = 8.dp)) {
-                viewModel.setDayEnd(it)
-            }
-        }
-
-        Group(R.string.settings_notifications) {
             StepperRow(
                 stringResource(R.string.settings_max_notifications),
                 settings.maxNotificationsPerGoalPerDay.toString(),
@@ -150,19 +128,42 @@ fun SettingsScreen(
             }
         }
 
-        Group(R.string.settings_failures) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+        Section(R.string.settings_blocking, stringResource(R.string.settings_blocking_summary)) {
+            Text(stringResource(R.string.settings_pause_info), fontSize = 12.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 14.dp)) {
+                SettingsButton(stringResource(R.string.blocked_apps_title)) { onOpenBlockingPage(BlockingPage.BLOCKED_APPS) }
+                SettingsButton(stringResource(R.string.safe_apps_title)) { onOpenBlockingPage(BlockingPage.SAFE_APPS) }
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                SettingsButton(stringResource(R.string.messages_title)) { onOpenBlockingPage(BlockingPage.MESSAGES) }
+                SettingsButton(stringResource(R.string.temp_settings_title)) { onOpenBlockingPage(BlockingPage.TEMP_ACCESS) }
+            }
+            SettingsButton(stringResource(R.string.wallpaper_title), Modifier.padding(top = 8.dp)) { onOpenBlockingPage(BlockingPage.WALLPAPER) }
+        }
+
+        Section(R.string.settings_days_scoring, stringResource(R.string.settings_days_summary, formatMinute(settings.dayEndMinute), settings.minimumWeightPercent)) {
+            Text(stringResource(R.string.settings_day_end), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
+            Text(stringResource(R.string.settings_day_end_help), fontSize = 12.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            TimeBox(R.string.settings_day_end_label, R.string.settings_day_end, settings.dayEndMinute, Modifier.padding(top = 8.dp)) {
+                viewModel.setDayEnd(it)
+            }
+            Text(stringResource(R.string.settings_weight), fontSize = 15.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 16.dp))
+            Text(stringResource(R.string.settings_weight_help), fontSize = 12.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            SegmentedChoice(
+                options = WEIGHT_CHOICES.map { it to "$it%" },
+                selected = settings.minimumWeightPercent,
+                onSelect = viewModel::setMinimumWeight,
+                modifier = Modifier.padding(top = 8.dp),
+            )
+            Row(Modifier.fillMaxWidth().padding(top = 16.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.settings_ask_note), fontSize = 15.sp, modifier = Modifier.weight(1f))
                 Switch(checked = settings.askFailNote, onCheckedChange = viewModel::setAskFailNote)
             }
         }
 
-        Group(R.string.settings_review) {
+        Section(R.string.settings_reviews_suggestions, stringResource(R.string.settings_reviews_summary, formatMinute(settings.reviewMinute))) {
             TimeBox(R.string.settings_review_time, R.string.settings_review_time, settings.reviewMinute, Modifier.fillMaxWidth(), onPicked = viewModel::setReviewMinute)
-        }
-
-        Group(R.string.settings_advice) {
-            Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Row(Modifier.fillMaxWidth().padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
                 Text(stringResource(R.string.settings_suggestions), fontSize = 15.sp, modifier = Modifier.weight(1f))
                 Switch(checked = settings.suggestionsOn, onCheckedChange = viewModel::setSuggestions)
             }
@@ -180,18 +181,7 @@ fun SettingsScreen(
             }
         }
 
-        Group(R.string.settings_scoring) {
-            Text(stringResource(R.string.settings_weight), fontSize = 15.sp, fontWeight = FontWeight.SemiBold)
-            Text(stringResource(R.string.settings_weight_help), fontSize = 12.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            SegmentedChoice(
-                options = WEIGHT_CHOICES.map { it to "$it%" },
-                selected = settings.minimumWeightPercent,
-                onSelect = viewModel::setMinimumWeight,
-                modifier = Modifier.padding(top = 8.dp),
-            )
-        }
-
-        Group(R.string.settings_backup) {
+        Section(R.string.settings_backup, stringResource(R.string.settings_backup_summary)) {
             Text(stringResource(R.string.settings_backup_help), fontSize = 12.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 10.dp)) {
                 SettingsButton(stringResource(R.string.settings_export_json)) { jsonSaver.launch("skriti-backup-$stamp.json") }
@@ -257,6 +247,24 @@ fun SettingsScreen(
                 }
             },
         )
+    }
+}
+
+/** A Settings section that stays closed; its row says what is set so nothing needs opening to be checked. */
+@Composable
+private fun Section(title: Int, summary: String, content: @Composable () -> Unit) {
+    val scheme = MaterialTheme.colorScheme
+    val shape = RoundedCornerShape(22.dp)
+    Fold(title, summary) {
+        Column(
+            Modifier
+                .padding(top = 8.dp)
+                .fillMaxWidth()
+                .clip(shape)
+                .background(scheme.surface)
+                .border(1.dp, scheme.outline, shape)
+                .padding(16.dp),
+        ) { content() }
     }
 }
 
