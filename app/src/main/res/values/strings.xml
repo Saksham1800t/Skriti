@@ -6,6 +6,8 @@
     <string name="tab_goals">Goals</string>
     <string name="tab_settings">Settings</string>
     <string name="tab_insights">Insights</string>
+    <string name="failure_add_details">Add details (trigger, mood, place)</string>
+    <string name="failure_hide_details">Hide details</string>
     <string name="access_title">Let Skriti see which app is open</string>
     <string name="access_body">Skriti reads only the name of the app in front and the time, never what is on screen, and nothing leaves your phone. Without it, apps cannot be blocked or asked about. Switch Skriti on in the list that opens.</string>
     <string name="access_open">Open Android settings</string>

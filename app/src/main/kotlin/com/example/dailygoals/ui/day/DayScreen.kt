@@ -101,15 +101,6 @@ fun DayScreen(viewModel: DayViewModel, onAddGoal: () -> Unit, onOpenPermissions:
     val nameOf: (Long) -> String = { id -> state.plan.items.firstOrNull { it.goal.id == id }?.goal?.name.orEmpty() }
     val askNote = (LocalContext.current.applicationContext as SkritiApp).settings.settings.collectAsStateWithLifecycle().value.askFailNote
     val unseen = if (isToday) plan.items.firstOrNull { it.status == DayStatus.FAILED && "${it.goal.id}:${plan.date}" !in seen } else null
-    var detailsKey by rememberSaveable { mutableStateOf("") }
-    val detailsItem = plan.items.firstOrNull { it.status == DayStatus.FAILED && "${it.goal.id}:${plan.date}" == detailsKey }
-    detailsItem?.let { item ->
-        DetailsDialog(
-            goalName = item.goal.name,
-            onSave = { trigger, mood, before, place -> viewModel.saveDetails(item.goal.id, plan.date, trigger, mood, before, place) },
-            onClose = { detailsKey = "" },
-        )
-    }
     unseen?.let { item ->
         FailureDialog(
             item = item,
@@ -119,7 +110,7 @@ fun DayScreen(viewModel: DayViewModel, onAddGoal: () -> Unit, onOpenPermissions:
             onSaveNote = { tag, note -> viewModel.saveNote(item.goal.id, plan.date, tag, note) },
             onRecover = { viewModel.recover(item.goal.id, plan.date) },
             onClose = { viewModel.failureSeen(item.goal.id, plan.date) },
-            onDetails = { detailsKey = "${item.goal.id}:${plan.date}" },
+            onSaveDetails = { trigger, mood, before, place -> viewModel.saveDetails(item.goal.id, plan.date, trigger, mood, before, place) },
         )
     }
 

@@ -47,8 +47,8 @@ internal fun FailureDialog(
     askNote: Boolean,
     onSaveNote: (tag: String?, note: String) -> Unit,
     onRecover: () -> Unit,
+    onSaveDetails: (trigger: String?, mood: Int?, before: String?, place: String?) -> Unit,
     onClose: () -> Unit,
-    onDetails: () -> Unit = {},
 ) {
     val meaning = item.goal.meaning
     val canRecover = RecoveryRules.check(item.goal, date, today, item.status, alreadyRecovered = false) == RecoveryCheck.OK
@@ -58,6 +58,15 @@ internal fun FailureDialog(
     }
     var tag by remember(item.goal.id, date) { mutableStateOf<String?>(null) }
     var note by remember(item.goal.id, date) { mutableStateOf("") }
+    var detailsOpen by remember(item.goal.id, date) { mutableStateOf(false) }
+    var trigger by remember(item.goal.id, date) { mutableStateOf<String?>(null) }
+    var mood by remember(item.goal.id, date) { mutableStateOf<Int?>(null) }
+    var before by remember(item.goal.id, date) { mutableStateOf<String?>(null) }
+    var place by remember(item.goal.id, date) { mutableStateOf<String?>(null) }
+    val saveAll = {
+        if (askNote && (tag != null || note.isNotBlank())) onSaveNote(tag, note)
+        if (askNote && (trigger != null || mood != null || before != null || place != null)) onSaveDetails(trigger, mood, before, place)
+    }
     AlertDialog(
         onDismissRequest = onClose,
         title = { Text(stringResource(R.string.failure_screen_title, item.goal.name)) },
@@ -90,12 +99,21 @@ internal fun FailureDialog(
                         label = { Text(stringResource(R.string.failure_screen_note)) },
                         modifier = Modifier.fillMaxWidth(),
                     )
+                    TextButton(onClick = { detailsOpen = !detailsOpen }) {
+                        Text(stringResource(if (detailsOpen) R.string.failure_hide_details else R.string.failure_add_details))
+                    }
+                    if (detailsOpen) {
+                        Choices(R.string.details_trigger, FailNotes.TRIGGERS, trigger) { trigger = it }
+                        Choices(R.string.details_mood, FailNotes.MOODS.toList(), mood) { mood = it }
+                        Choices(R.string.details_before, FailNotes.BEFORE, before) { before = it }
+                        Choices(R.string.details_place, FailNotes.PLACES, place) { place = it }
+                    }
                 }
                 if (canRecover) {
                     Text(stringResource(R.string.failure_screen_recovery), fontSize = 12.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 12.dp))
                     Row {
                         TextButton(onClick = {
-                            if (askNote && (tag != null || note.isNotBlank())) onSaveNote(tag, note)
+                            saveAll()
                             if (!item.goal.measurement.isAmount) onRecover()
                             onClose()
                         }) {
@@ -113,17 +131,13 @@ internal fun FailureDialog(
         },
         confirmButton = {
             TextButton(onClick = {
-                if (askNote && (tag != null || note.isNotBlank())) onSaveNote(tag, note)
+                saveAll()
                 onClose()
-                if (askNote) onDetails()
             }) { Text(stringResource(if (canRecover) R.string.failure_screen_accept else R.string.failure_screen_save)) }
         },
         dismissButton = if (askNote) {
             {
-                TextButton(onClick = {
-                    onClose()
-                    onDetails()
-                }) { Text(stringResource(R.string.failure_screen_skip)) }
+                TextButton(onClick = onClose) { Text(stringResource(R.string.failure_screen_skip)) }
             }
         } else {
             null
@@ -144,43 +158,11 @@ internal fun StakeBanner(stake: StakeEntity, goalName: String, onDone: () -> Uni
     }
 }
 
-/** The optional second step: what triggered it, the mood, what happened right before, and where. Everything can be skipped. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun DetailsDialog(
-    goalName: String,
-    onSave: (trigger: String?, mood: Int?, before: String?, place: String?) -> Unit,
-    onClose: () -> Unit,
-) {
-    var trigger by remember { mutableStateOf<String?>(null) }
-    var mood by remember { mutableStateOf<Int?>(null) }
-    var before by remember { mutableStateOf<String?>(null) }
-    var place by remember { mutableStateOf<String?>(null) }
-
-    @Composable
-    fun <T> Choices(title: Int, options: List<T>, chosen: T?, onPick: (T?) -> Unit) {
-        Text(stringResource(title), fontSize = 12.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 10.dp))
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            options.forEach { option -> FilterChip(selected = chosen == option, onClick = { onPick(if (chosen == option) null else option) }, label = { Text(option.toString()) }) }
-        }
+private fun <T> Choices(title: Int, options: List<T>, chosen: T?, onPick: (T?) -> Unit) {
+    Text(stringResource(title), fontSize = 12.5.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 10.dp))
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        options.forEach { option -> FilterChip(selected = chosen == option, onClick = { onPick(if (chosen == option) null else option) }, label = { Text(option.toString()) }) }
     }
-    AlertDialog(
-        onDismissRequest = onClose,
-        title = { Text(stringResource(R.string.details_title, goalName)) },
-        text = {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                Choices(R.string.details_trigger, FailNotes.TRIGGERS, trigger) { trigger = it }
-                Choices(R.string.details_mood, FailNotes.MOODS.toList(), mood) { mood = it }
-                Choices(R.string.details_before, FailNotes.BEFORE, before) { before = it }
-                Choices(R.string.details_place, FailNotes.PLACES, place) { place = it }
-            }
-        },
-        confirmButton = {
-            TextButton(onClick = {
-                onSave(trigger, mood, before, place)
-                onClose()
-            }) { Text(stringResource(R.string.failure_screen_save)) }
-        },
-        dismissButton = { TextButton(onClick = onClose) { Text(stringResource(R.string.failure_screen_skip)) } },
-    )
 }
