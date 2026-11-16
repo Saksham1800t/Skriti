@@ -59,7 +59,7 @@ data class GoalFormState(
     val graceMinutes: Int = GoalSchedule.DEFAULT_GRACE_MINUTES,
     val failOnWindowEnd: Boolean = true,
     val failOnDayEnd: Boolean = true,
-    val failOnManual: Boolean = false,
+    val failOnManual: Boolean = true,
     val isAmount: Boolean = false,
     val unit: String = "",
     val targetText: String = "",
@@ -254,7 +254,7 @@ class GoalFormViewModel(private val repository: GoalRepository, private val cloc
         if (it.isEdit) {
             it.copy(type = type)
         } else {
-            it.copy(type = type, failOnDayEnd = true, failOnManual = type == GoalType.AVOID, recoveryAllowed = RecoveryRules.defaultAllowed(type == GoalType.AVOID))
+            it.copy(type = type, failOnDayEnd = true, failOnManual = true, recoveryAllowed = RecoveryRules.defaultAllowed(type == GoalType.AVOID))
         }
     }
 
