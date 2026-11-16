@@ -105,6 +105,7 @@ private fun InsightsList(
                 }
             }
         }
+        androidx.compose.foundation.layout.Spacer(Modifier.padding(top = 12.dp))
         val goalsWithData = data.goals.count { it.report.hasEnoughData }
         if (data.goals.isNotEmpty() && goalsWithData == 0) {
             val days = data.goals.maxOf { it.report.dueDays }.coerceAtMost(PatternRulesMin)
