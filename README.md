@@ -14,21 +14,28 @@ A private, offline goal tracker for Android. Give each goal its own time slot an
 - **Widgets, backups and breaks.** A home-screen widget, backup and restore, and a break for a trip or an illness.
 
 ## Install
-**Recommended: install with Obtainium.** Obtainium is a free installer app that installs and updates apps straight from a project's GitHub releases. Installing this way worked on a phone where a downloaded APK was blocked by Play Protect.
+Skriti comes in two editions with the same app id, so Lite can later be updated to the full edition and keeps your data.
+
+- **Skriti Lite** has goals, reminders, the optional alarm, the weekly review, Insights, widgets and backups. It has no app blocking, no "did you just use it?" prompt, no accessibility service and no loud lock-screen reminder. It installs from a plain download.
+- **Skriti** (full) adds app blocking. That needs Android's accessibility service, and some phones, including phones in India, block a downloaded app that asks for it.
+
+### Skriti Lite: download
+Download `skriti-lite-0.4.2.apk` from the project's Releases page and open it. Android asks once to allow installs from your browser or Files app. Installing Lite from a download showed no Play Protect warning on the phone it was tested on.
+
+### Skriti (full): install with Obtainium
+Obtainium is a free installer app that installs and updates apps straight from a project's GitHub releases. Installing this way worked on a phone where a downloaded copy of the full edition was blocked.
 1. Install Obtainium: search "Obtainium" in the F-Droid app, or download it from https://github.com/ImranR98/Obtainium/releases.
 2. Open Obtainium, tap "Add App", paste `https://github.com/Saksham1800t/Skriti` and tap "Add".
-3. Tap "Install" next to Skriti and allow Obtainium to install apps when Android asks. Obtainium also tells you when a new version is out.
+3. Obtainium may list both APKs on the release. Choose `skriti-0.4.2.apk`, not the one with "lite" in the name. To make it automatic, set "Filter APKs by regular expression" to `^skriti-[0-9.]+\.apk$`.
+4. Tap "Install" and allow Obtainium to install apps when Android asks. Obtainium also tells you when a new version is out.
 
 On a phone that already has Obtainium, this link opens the Add App screen with Skriti filled in: `obtainium://add/https://github.com/Saksham1800t/Skriti`
 
-**Or download the APK** from the project's Releases page and open it. Android asks once to allow installs from that source.
+### If Play Protect stops an install
+Some phones show "App blocked to protect your device" with only an OK button. You can install from a computer with USB debugging on (`adb install skriti-0.4.2.apk`), which Play Protect does not check, or turn off "Scan apps with Play Protect" in the Play Store for the install and turn it back on afterwards. The second lowers your phone's protection, so only do it if you trust the download. A Google Play version may follow.
 
-To use blocking you must switch on Skriti's blocker in Accessibility settings. If the switch is greyed out, open Skriti's App info, use the three-dot menu and choose "Allow restricted settings", then try again. Android turns the blocker off whenever the app is updated or force-stopped, and Skriti shows a red banner on Today until you switch it on again.
-
-Play Protect may stop the install. Some phones, including phones in India, show "App blocked to protect your device" with only an OK button for an app installed from a downloaded file. A test build that asked for almost no permissions was blocked too, so it is not one setting in Skriti. You can install from a computer with USB debugging on (`adb install skriti-0.4.0.apk`), which Play Protect does not check, or turn off "Scan apps with Play Protect" in the Play Store for the install and turn it back on afterwards. The second lowers your phone's protection, so only do it if you trust the download. A Google Play version may follow.
-
-## Skriti and Skriti Lite
-Skriti has app blocking, which needs Android's accessibility service. Some phones, including phones in India, block a downloaded app that asks for that service. Skriti Lite is the same app without app blocking, the "did you just use it?" prompt and the accessibility service, so it installs without that block. Both use the same app id, so Lite can later be updated to the full version.
+### App blocking (full edition)
+Switch on Skriti's blocker in Accessibility settings. If the switch is greyed out, open Skriti's App info, use the three-dot menu and choose "Allow restricted settings", then try again. Android turns the blocker off whenever the app is updated or force-stopped, and Skriti shows a red banner on Today until you switch it on again.
 
 ## Permissions
 | Permission | Used for |
