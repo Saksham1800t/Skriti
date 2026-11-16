@@ -51,6 +51,21 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
+    }
+
+    // "full" has app blocking; "lite" has no accessibility service, so Play Protect does not block its installation.
+    flavorDimensions += "edition"
+    productFlavors {
+        create("full") {
+            dimension = "edition"
+            buildConfigField("boolean", "BLOCKING", "true")
+        }
+        create("lite") {
+            dimension = "edition"
+            buildConfigField("boolean", "BLOCKING", "false")
+            versionNameSuffix = "-lite"
+        }
     }
 
     compileOptions {
