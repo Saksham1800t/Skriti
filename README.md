@@ -14,7 +14,14 @@ A private, offline goal tracker for Android. Give each goal its own time slot an
 - **Widgets, backups and breaks.** A home-screen widget, backup and restore, and a break for a trip or an illness.
 
 ## Install
-Download the APK from the project's Releases page and open it. Android asks once to allow installs from that source.
+**Recommended: install with Obtainium.** Obtainium is a free installer app that installs and updates apps straight from a project's GitHub releases. Installing this way worked on a phone where a downloaded APK was blocked by Play Protect.
+1. Install Obtainium: search "Obtainium" in the F-Droid app, or download it from https://github.com/ImranR98/Obtainium/releases.
+2. Open Obtainium, tap "Add App", paste `https://github.com/Saksham1800t/Skriti` and tap "Add".
+3. Tap "Install" next to Skriti and allow Obtainium to install apps when Android asks. Obtainium also tells you when a new version is out.
+
+On a phone that already has Obtainium, this link opens the Add App screen with Skriti filled in: `obtainium://add/https://github.com/Saksham1800t/Skriti`
+
+**Or download the APK** from the project's Releases page and open it. Android asks once to allow installs from that source.
 
 To use blocking you must switch on Skriti's blocker in Accessibility settings. If the switch is greyed out, open Skriti's App info, use the three-dot menu and choose "Allow restricted settings", then try again. Android turns the blocker off whenever the app is updated or force-stopped, and Skriti shows a red banner on Today until you switch it on again.
 
