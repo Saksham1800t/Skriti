@@ -76,7 +76,7 @@ data class GoalFormState(
     val scheduledBlock: Boolean = false,
     val autoKeep: Boolean = true,
     val attemptsToday: Int = 0,
-    val allowTempAccess: Boolean = true,
+    val allowTempAccess: Boolean = false,
     val pendingId: Long? = null,
     val pendingAt: Long? = null,
     val pendingArchive: Boolean = false,
