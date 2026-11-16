@@ -1,0 +1,1 @@
+Lite edition: installs from a plain download, with no accessibility service and no full-screen alert permission. The full edition keeps app blocking.

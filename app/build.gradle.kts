@@ -14,8 +14,8 @@ android {
         applicationId = "io.github.saksham1800t.skriti"
         minSdk = 29
         targetSdk = 37
-        versionCode = 5
-        versionName = "0.4.1"
+        versionCode = 6
+        versionName = "0.4.2"
     }
 
     // The release key stays on the maker's own machine: keystore.properties is never committed.
