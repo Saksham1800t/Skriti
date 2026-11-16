@@ -26,4 +26,4 @@ Skriti is not directed at children and collects nothing from anyone.
 If this policy changes, the new version is published in this file in the project repository with a new date.
 
 ## Contact
-Open an issue at https://github.com/Saksham1800t/daily-goals/issues.
+Open an issue at https://github.com/Saksham1800t/Skriti/issues.
