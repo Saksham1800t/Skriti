@@ -118,7 +118,15 @@ fun WeeklyReviewScreen(weekStart: String, onBack: () -> Unit, onModify: (Long) -
                 modify?.let(onModify)
             }
         })
-        if (saved) Text(stringResource(R.string.review_saved), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 8.dp))
+        if (saved) {
+            val paused = current.decisions.filterValues { it == NextWeek.PAUSE }.keys.mapNotNull(names::get)
+            val removed = current.decisions.filterValues { it == NextWeek.DELETE }.keys.mapNotNull(names::get)
+            Column(Modifier.padding(top = 8.dp)) {
+                Text(stringResource(R.string.review_saved), fontSize = 13.sp, color = MaterialTheme.colorScheme.primary)
+                if (paused.isNotEmpty()) Text(stringResource(R.string.review_saved_paused, paused.joinToString(", ")), fontSize = 13.sp)
+                if (removed.isNotEmpty()) Text(stringResource(R.string.review_saved_deleted, removed.joinToString(", ")), fontSize = 13.sp)
+            }
+        }
         Text(stringResource(R.string.review_choices_help), fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(top = 8.dp, bottom = 16.dp))
     }
 }
