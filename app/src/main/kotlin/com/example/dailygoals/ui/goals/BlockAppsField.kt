@@ -40,7 +40,7 @@ import com.example.dailygoals.ui.components.loadInstalledApps
 internal fun BlockAppsField(form: GoalFormState, viewModel: GoalFormViewModel) {
     if (!form.canScheduleBlock && !form.punishmentBlocks && form.type != GoalType.AVOID) return
     var picking by remember { mutableStateOf(false) }
-    Field(R.string.form_block_apps) {
+    Field(if (form.type == GoalType.AVOID) R.string.form_tempting_apps else R.string.form_block_apps) {
         if (form.canScheduleBlock) {
             CheckRow(
                 checked = form.scheduledBlock,
@@ -67,7 +67,7 @@ internal fun BlockAppsField(form: GoalFormState, viewModel: GoalFormViewModel) {
         TextButton(onClick = { picking = true }, modifier = Modifier.padding(top = 8.dp)) {
             Text(
                 if (form.blockPackages.isEmpty()) {
-                    stringResource(R.string.punish_choose_apps)
+                    stringResource(if (form.type == GoalType.AVOID) R.string.watch_choose_apps else R.string.punish_choose_apps)
                 } else {
                     pluralStringResource(R.plurals.punish_apps_chosen, form.blockPackages.size, form.blockPackages.size)
                 },
