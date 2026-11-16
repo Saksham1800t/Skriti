@@ -1,6 +1,12 @@
 package com.example.dailygoals.ui.goals
 
+import android.Manifest
+import android.content.Intent
+import android.os.Build
+import android.provider.Settings
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -29,6 +35,7 @@ import androidx.compose.material3.TimePicker
 import androidx.compose.material3.rememberTimePickerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -45,7 +52,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.dailygoals.SkritiApp
 import com.example.dailygoals.blocker.BlockScreens
+import com.example.dailygoals.blocker.BlockerStatus
+import com.example.dailygoals.engine.BlockerNeed
 import com.example.dailygoals.R
 import com.example.dailygoals.engine.GoalError
 import com.example.dailygoals.model.Frequency
@@ -75,13 +85,26 @@ fun GoalFormScreen(viewModel: GoalFormViewModel, onClose: () -> Unit, modifier: 
     val form by viewModel.state.collectAsStateWithLifecycle()
     var confirmDelete by rememberSaveable { mutableStateOf(false) }
     val context = LocalContext.current
+    val checker = remember { (context.applicationContext as SkritiApp).permissions }
+    var accessAsk by rememberSaveable { mutableStateOf(false) }
+    val needsService = BlockerNeed.needed(form.type, form.intensity, form.blockPackages)
+    fun finishAfterSave() {
+        if (needsService && !BlockerStatus.isServiceEnabled(context)) accessAsk = true else onClose()
+    }
+    val notificationPrompt = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { finishAfterSave() }
     val closeAfter: (Long?) -> Unit = { appliesAt ->
         if (appliesAt != null) {
             val time = BlockScreens.untilText(appliesAt, System.currentTimeMillis())
             Toast.makeText(context, context.getString(R.string.pending_toast, time), Toast.LENGTH_LONG).show()
         }
-        onClose()
+        val wantsNotices = form.warningMode != WarningMode.NONE && !checker.status().notifications
+        if (wantsNotices && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            notificationPrompt.launch(Manifest.permission.POST_NOTIFICATIONS)
+        } else {
+            finishAfterSave()
+        }
     }
+    val closeAfterDelete: (Long?) -> Unit = { onClose() }
 
     Column(modifier.verticalScroll(rememberScrollState()).padding(horizontal = 16.dp, vertical = 12.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -219,6 +242,27 @@ fun GoalFormScreen(viewModel: GoalFormViewModel, onClose: () -> Unit, modifier: 
         }
     }
 
+    if (accessAsk) {
+        AlertDialog(
+            onDismissRequest = { },
+            title = { Text(stringResource(R.string.access_title)) },
+            text = { Text(stringResource(R.string.access_body)) },
+            confirmButton = {
+                TextButton(onClick = {
+                    accessAsk = false
+                    runCatching { context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) }
+                    onClose()
+                }) { Text(stringResource(R.string.access_open)) }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    accessAsk = false
+                    onClose()
+                }) { Text(stringResource(R.string.access_skip)) }
+            },
+        )
+    }
+
     if (confirmDelete) {
         AlertDialog(
             onDismissRequest = { confirmDelete = false },
@@ -227,7 +271,7 @@ fun GoalFormScreen(viewModel: GoalFormViewModel, onClose: () -> Unit, modifier: 
             confirmButton = {
                 TextButton(onClick = {
                     confirmDelete = false
-                    viewModel.delete(closeAfter)
+                    viewModel.delete(closeAfterDelete)
                 }) { Text(stringResource(R.string.form_delete_confirm), color = LocalStatusColors.current.failed) }
             },
             dismissButton = {

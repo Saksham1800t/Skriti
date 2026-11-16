@@ -83,7 +83,7 @@ fun AppRoot() {
     LaunchedEffect(formGoalId) { formGoalId?.let(formViewModel::ensureOpen) }
 
     val app = LocalContext.current.applicationContext as SkritiApp
-    var showPermissions by rememberSaveable { mutableStateOf(!app.settings.setupSeen()) }
+    var showPermissions by rememberSaveable { mutableStateOf(false) }
     var reviewList by rememberSaveable { mutableStateOf(false) }
     var reviewWeek by rememberSaveable { mutableStateOf<String?>(null) }
     val pending by MainActivity.pendingReview.collectAsStateWithLifecycle()
