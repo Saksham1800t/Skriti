@@ -40,6 +40,7 @@ import com.example.dailygoals.ui.formatMinute
 import com.example.dailygoals.ui.goals.Fold
 import com.example.dailygoals.engine.NotificationCap
 import com.example.dailygoals.ui.components.StepperRow
+import com.example.dailygoals.BuildConfig
 import com.example.dailygoals.R
 import com.example.dailygoals.SkritiApp
 import com.example.dailygoals.engine.CoolingOff
@@ -129,17 +130,19 @@ fun SettingsScreen(
             }
         }
 
-        Section(R.string.settings_blocking, stringResource(R.string.settings_blocking_summary)) {
-            EmergencyPauseCard((context.applicationContext as SkritiApp).blocks)
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 14.dp)) {
-                SettingsButton(stringResource(R.string.blocked_apps_title)) { onOpenBlockingPage(BlockingPage.BLOCKED_APPS) }
-                SettingsButton(stringResource(R.string.safe_apps_title)) { onOpenBlockingPage(BlockingPage.SAFE_APPS) }
+        if (BuildConfig.BLOCKING) {
+            Section(R.string.settings_blocking, stringResource(R.string.settings_blocking_summary)) {
+                EmergencyPauseCard((context.applicationContext as SkritiApp).blocks)
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 14.dp)) {
+                    SettingsButton(stringResource(R.string.blocked_apps_title)) { onOpenBlockingPage(BlockingPage.BLOCKED_APPS) }
+                    SettingsButton(stringResource(R.string.safe_apps_title)) { onOpenBlockingPage(BlockingPage.SAFE_APPS) }
+                }
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
+                    SettingsButton(stringResource(R.string.messages_title)) { onOpenBlockingPage(BlockingPage.MESSAGES) }
+                    SettingsButton(stringResource(R.string.temp_settings_title)) { onOpenBlockingPage(BlockingPage.TEMP_ACCESS) }
+                }
+                SettingsButton(stringResource(R.string.wallpaper_title), Modifier.padding(top = 8.dp)) { onOpenBlockingPage(BlockingPage.WALLPAPER) }
             }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
-                SettingsButton(stringResource(R.string.messages_title)) { onOpenBlockingPage(BlockingPage.MESSAGES) }
-                SettingsButton(stringResource(R.string.temp_settings_title)) { onOpenBlockingPage(BlockingPage.TEMP_ACCESS) }
-            }
-            SettingsButton(stringResource(R.string.wallpaper_title), Modifier.padding(top = 8.dp)) { onOpenBlockingPage(BlockingPage.WALLPAPER) }
         }
 
         Section(R.string.settings_days_scoring, stringResource(R.string.settings_days_summary, formatMinute(settings.dayEndMinute), settings.minimumWeightPercent)) {
@@ -229,16 +232,21 @@ fun SettingsScreen(
             title = { Text(stringResource(R.string.help_title)) },
             text = {
                 Column(Modifier.verticalScroll(rememberScrollState())) {
-                    listOf(
-                        R.string.help_minimum_t to R.string.help_minimum_d,
-                        R.string.help_grace_t to R.string.help_grace_d,
-                        R.string.help_recovery_t to R.string.help_recovery_d,
-                        R.string.help_rescue_t to R.string.help_rescue_d,
-                        R.string.help_penalty_t to R.string.help_penalty_d,
-                        R.string.help_pause_t to R.string.help_pause_d,
-                        R.string.help_temp_t to R.string.help_temp_d,
-                        R.string.help_cooling_t to R.string.help_cooling_d,
-                    ).forEach { (term, meaning) ->
+                    if (!BuildConfig.BLOCKING) {
+                        Text(stringResource(R.string.help_lite_note), fontSize = 13.sp, fontWeight = FontWeight.SemiBold)
+                    }
+                    buildList {
+                        add(R.string.help_minimum_t to R.string.help_minimum_d)
+                        add(R.string.help_grace_t to R.string.help_grace_d)
+                        add(R.string.help_recovery_t to R.string.help_recovery_d)
+                        add(R.string.help_rescue_t to R.string.help_rescue_d)
+                        add(R.string.help_penalty_t to R.string.help_penalty_d)
+                        if (BuildConfig.BLOCKING) {
+                            add(R.string.help_pause_t to R.string.help_pause_d)
+                            add(R.string.help_temp_t to R.string.help_temp_d)
+                            add(R.string.help_cooling_t to R.string.help_cooling_d)
+                        }
+                    }.forEach { (term, meaning) ->
                         Text(stringResource(term), fontSize = 14.sp, fontWeight = FontWeight.SemiBold, modifier = Modifier.padding(top = 10.dp))
                         Text(stringResource(meaning), fontSize = 13.sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }

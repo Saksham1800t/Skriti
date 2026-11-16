@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.dailygoals.BuildConfig
 import com.example.dailygoals.R
 import com.example.dailygoals.engine.Intensity
 import com.example.dailygoals.engine.PunishmentRules
@@ -17,12 +18,14 @@ import com.example.dailygoals.ui.components.SegmentedChoice
 internal fun PunishmentField(form: GoalFormState, viewModel: GoalFormViewModel) {
     Field(R.string.form_punishment) {
         SegmentedChoice(
-            options = listOf(
-                Intensity.NONE to stringResource(R.string.intensity_none),
-                Intensity.GENTLE to stringResource(R.string.intensity_gentle),
-                Intensity.MODERATE to stringResource(R.string.intensity_moderate),
-                Intensity.STRONG to stringResource(R.string.intensity_strong),
-            ),
+            options = buildList {
+                add(Intensity.NONE to stringResource(R.string.intensity_none))
+                add(Intensity.GENTLE to stringResource(R.string.intensity_gentle))
+                if (BuildConfig.BLOCKING) {
+                    add(Intensity.MODERATE to stringResource(R.string.intensity_moderate))
+                    add(Intensity.STRONG to stringResource(R.string.intensity_strong))
+                }
+            },
             selected = form.intensity,
             onSelect = { level -> viewModel.edit { it.copy(intensity = level) } },
         )

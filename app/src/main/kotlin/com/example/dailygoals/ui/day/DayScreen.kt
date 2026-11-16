@@ -49,6 +49,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.material3.TextButton
 import com.example.dailygoals.R
 import com.example.dailygoals.engine.StakeStatus
+import com.example.dailygoals.BuildConfig
 import com.example.dailygoals.SkritiApp
 import com.example.dailygoals.blocker.BlockerStatus
 import com.example.dailygoals.engine.BlockerNeed
@@ -138,7 +139,7 @@ fun DayScreen(viewModel: DayViewModel, onAddGoal: () -> Unit, onOpenPermissions:
                 )
             }
         }
-        if (isToday && !blockerOn && plan.items.any { BlockerNeed.needed(it.goal.type, it.goal.discipline.intensity, it.goal.avoidance.temptingPackages) }) {
+        if (BuildConfig.BLOCKING && isToday && !blockerOn && plan.items.any { BlockerNeed.needed(it.goal.type, it.goal.discipline.intensity, it.goal.avoidance.temptingPackages) }) {
             item(key = "blocker-off") { BlockerOffBanner { runCatching { context.startActivity(Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)) } } }
         }
         if (isToday && warningsBlocked && !hintDismissed && plan.items.any { it.goal.reminder.mode != WarningMode.NONE }) {

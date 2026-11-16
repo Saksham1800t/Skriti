@@ -6,6 +6,7 @@
     <string name="tab_goals">Goals</string>
     <string name="tab_settings">Settings</string>
     <string name="tab_insights">Insights</string>
+    <string name="help_lite_note">This is Skriti Lite. It has no app blocking, so it never asks for the accessibility service.</string>
     <string name="form_tempting_apps">Apps that tempt you</string>
     <string name="watch_choose_apps">Choose the apps that tempt you</string>
     <string name="review_saved_paused">Break for 7 days: %1$s</string>

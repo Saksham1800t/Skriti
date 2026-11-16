@@ -52,6 +52,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.dailygoals.BuildConfig
 import com.example.dailygoals.SkritiApp
 import com.example.dailygoals.blocker.BlockScreens
 import com.example.dailygoals.blocker.BlockerStatus
@@ -87,7 +88,7 @@ fun GoalFormScreen(viewModel: GoalFormViewModel, onClose: () -> Unit, modifier: 
     val context = LocalContext.current
     val checker = remember { (context.applicationContext as SkritiApp).permissions }
     var accessAsk by rememberSaveable { mutableStateOf(false) }
-    val needsService = BlockerNeed.needed(form.type, form.intensity, form.blockPackages)
+    val needsService = BuildConfig.BLOCKING && BlockerNeed.needed(form.type, form.intensity, form.blockPackages)
     fun finishAfterSave() {
         if (needsService && !BlockerStatus.isServiceEnabled(context)) accessAsk = true else onClose()
     }
@@ -170,7 +171,7 @@ fun GoalFormScreen(viewModel: GoalFormViewModel, onClose: () -> Unit, modifier: 
                 }
             }
         }
-        if (form.type == GoalType.AVOID) BlockAppsField(form, viewModel)
+        if (BuildConfig.BLOCKING && form.type == GoalType.AVOID) BlockAppsField(form, viewModel)
 
         val whenSummary = stringResource(R.string.fold_join, schedulePhrase(form.schedule(LocalDate.now())), windowPhrase(form.window))
         Fold(R.string.fold_when, whenSummary, forceOpen = form.errors.any { it != GoalError.NAME_BLANK && it != GoalError.NAME_TOO_LONG && it != GoalError.BLOCK_MESSAGE_TOO_LONG && it !in ALARM_ERRORS }) {
@@ -223,7 +224,7 @@ fun GoalFormScreen(viewModel: GoalFormViewModel, onClose: () -> Unit, modifier: 
         )
         Fold(R.string.fold_fail, intensityLabel, forceOpen = GoalError.BLOCK_MESSAGE_TOO_LONG in form.errors) {
             PunishmentField(form, viewModel)
-            if (form.type != GoalType.AVOID) BlockAppsField(form, viewModel)
+            if (BuildConfig.BLOCKING && form.type != GoalType.AVOID) BlockAppsField(form, viewModel)
         }
 
         val meaningSet = listOf(form.why, form.ifFail, form.stake, form.ifText, form.thenText).any { it.isNotBlank() }
